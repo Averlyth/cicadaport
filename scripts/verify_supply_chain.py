@@ -21,7 +21,7 @@ ALLOWED_ACTIONS = {
     "actions/setup-go": "b7ad1dad31e06c5925ef5d2fc7ad053ef454303e",
     "actions/upload-artifact": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
     "actions/download-artifact": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
-    "actions/attest": "508db95dd578ae2727ebd6217d5ba78e4fbda05d",
+    "actions/attest": "1e69f48acb82d1966a394da916b4c1698aa569d6",
     "gitleaks/gitleaks-action": "e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e",
 }
 

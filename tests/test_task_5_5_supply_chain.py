@@ -24,7 +24,7 @@ def test_node24_artifact_actions_and_attestations_are_explicit() -> None:
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in source
     assert "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" in source
-    assert source.count("actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d") == 2
+    assert source.count("actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6") == 2
     assert "id-token: write" in source
     assert "attestations: write" in source
     assert "artifact-metadata: write" in source

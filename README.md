@@ -34,7 +34,7 @@ The current source tree identifies the application as:
 
 `3.0.0-rc.2` is the current source-level release candidate. It is **not currently a published GitHub Release**.
 
-The latest published prerelease remains [v3.0.0-rc.1](https://github.com/Averlyth/port-scanner/releases/tag/v3.0.0-rc.1).
+The latest published prerelease remains [v3.0.0-rc.1](https://github.com/Averlyth/cicadaport/releases/tag/v3.0.0-rc.1).
 
 Development state and published-release state are intentionally treated as separate concerns.
 
@@ -183,8 +183,8 @@ Observing successful execution on an unvalidated platform does not automatically
 Clone the current organization repository:
 
 ```bash
-git clone https://github.com/Averlyth/port-scanner.git
-cd port-scanner
+git clone https://github.com/Averlyth/cicadaport.git
+cd cicadaport
 ```
 
 Create an isolated Python environment:
@@ -770,4 +770,4 @@ CicadaPort is maintained as part of the **Obscuryx Security Platform**.
 
 Organization: [github.com/Averlyth](https://github.com/Averlyth)
 
-Repository: [github.com/Averlyth/port-scanner](https://github.com/Averlyth/port-scanner)
+Repository: [github.com/Averlyth/cicadaport](https://github.com/Averlyth/cicadaport)

@@ -110,4 +110,4 @@ CicadaPort is maintained by **Averlyth** as part of the **Obscuryx Security Plat
 
 Repository:
 
-[github.com/Averlyth/port-scanner](https://github.com/Averlyth/port-scanner)
+[github.com/Averlyth/cicadaport](https://github.com/Averlyth/cicadaport)

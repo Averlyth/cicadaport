@@ -28,11 +28,11 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Averlyth/port-scanner"
-Repository = "https://github.com/Averlyth/port-scanner"
-Issues = "https://github.com/Averlyth/port-scanner/issues"
-Changelog = "https://github.com/Averlyth/port-scanner/blob/main/CHANGELOG.md"
-Security = "https://github.com/Averlyth/port-scanner/blob/main/SECURITY.md"
+Homepage = "https://github.com/Averlyth/cicadaport"
+Repository = "https://github.com/Averlyth/cicadaport"
+Issues = "https://github.com/Averlyth/cicadaport/issues"
+Changelog = "https://github.com/Averlyth/cicadaport/blob/main/CHANGELOG.md"
+Security = "https://github.com/Averlyth/cicadaport/blob/main/SECURITY.md"
 
 [project.scripts]
 cicadaport = "main:main"

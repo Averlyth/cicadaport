@@ -1,0 +1,27 @@
+# CicadaPort CODEOWNERS
+#
+# Canonical repository owner: Averlyth
+# Technical code owner: @DrewSC13
+#
+# Team-based ownership may replace or extend these rules only after
+# the corresponding Averlyth GitHub team has been formally created
+# and approved.
+
+* @DrewSC13
+
+/.github/ @DrewSC13
+/src/ @DrewSC13
+/rust-core/ @DrewSC13
+/go-banner/ @DrewSC13
+/scripts/ @DrewSC13
+
+/pyproject.toml @DrewSC13
+/setup.py @DrewSC13
+/requirements*.txt @DrewSC13
+
+/README.md @DrewSC13
+/SECURITY.md @DrewSC13
+/CONTRIBUTING.md @DrewSC13
+/ROADMAP.md @DrewSC13
+/CHANGELOG.md @DrewSC13
+/LICENSE.md @DrewSC13

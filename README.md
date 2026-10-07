@@ -2,172 +2,441 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10--3.13-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
-![Platform](https://img.shields.io/badge/Platform-Linux%20x86_64-lightgrey.svg)\n![Release](https://img.shields.io/badge/Release-3.0.0--rc.2-orange.svg)
+![Platform](https://img.shields.io/badge/Platform-Linux%20x86_64-lightgrey.svg)
+![Source Version](https://img.shields.io/badge/Source-3.0.0--rc.2-orange.svg)
+![Published Prerelease](https://img.shields.io/badge/Published-v3.0.0--rc.1-informational.svg)
 
-Escáner de puertos con arquitectura especializada para auditorías de seguridad
-autorizadas: Python orquesta la sesión, Rust ejecuta el escaneo TCP y Go captura
-los banners solicitados.
+**Specialized TCP reconnaissance platform for authorized security assessments.**
 
-## Release candidate y soporte verificable
+CicadaPort is developed and maintained by [Averlyth](https://github.com/Averlyth) as part of the **Obscuryx Security Platform**.
 
-CicadaPort `3.0.0-rc.2` (`3.0.0rc2` en metadatos Python) es la nueva
-Release Candidate empresarial en validación de rama. No es una versión estable
-ni está publicada todavía. La matriz verificada continúa limitada a Linux
-x86_64, Ubuntu 22.04/24.04 y Python 3.10-3.13; Windows, macOS, ARM64 y
-Python 3.14 permanecen no soportados. Rust 1.97.1 y Go 1.26.5 siguen fijados
-y los contratos JSONL públicos permanecen en versión 1.
+The platform separates orchestration, TCP reconnaissance, and service-evidence collection across Python, Rust, and Go while preserving explicit contracts, reproducible execution, controlled resource usage, and security-oriented defaults.
 
-El wheel Linux contiene los motores obligatorios Rust y Go. La construcción y
-prueba aislada de wheel/sdist se ejecuta con:
+CicadaPort is intended exclusively for systems, networks, laboratories, and environments for which the operator has explicit authorization.
 
-```bash
-python -m pip install -r requirements-release.txt
-./scripts/build_release_artifacts.sh
-./scripts/test_release_artifacts.sh dist
+---
+
+## Project Status
+
+The current source tree identifies the application as:
+
+| Item | Current state |
+| --- | --- |
+| Product | CicadaPort |
+| Organization | Averlyth |
+| Ecosystem | Obscuryx Security Platform |
+| Python distribution | `portscanner-pro` |
+| Source version | `3.0.0-rc.2` |
+| Python version identifier | `3.0.0rc2` |
+| Latest published prerelease | `v3.0.0-rc.1` |
+| Stable release | Not published |
+| Primary platform | Linux x86_64 |
+
+`3.0.0-rc.2` is the current source-level release candidate. It is **not currently a published GitHub Release**.
+
+The latest published prerelease remains [v3.0.0-rc.1](https://github.com/Averlyth/port-scanner/releases/tag/v3.0.0-rc.1).
+
+Development state and published-release state are intentionally treated as separate concerns.
+
+---
+
+## Architecture
+
+CicadaPort uses a specialized multi-language architecture with explicit responsibility boundaries.
+
+### Python
+
+Python provides the orchestration layer and coordinates:
+
+- CLI and TUI execution;
+- target parsing and normalization;
+- hostname and address resolution;
+- execution planning;
+- multi-target orchestration;
+- session management;
+- result validation;
+- event processing;
+- reporting;
+- profile management;
+- native-engine integration.
+
+### Rust
+
+Rust provides the mandatory public TCP scanning engine.
+
+The engine performs authorized TCP-connect reconnaissance with bounded concurrency, incremental result streaming, explicit cancellation, controlled resource usage, and versioned JSON Lines contracts.
+
+### Go
+
+Go provides service and banner evidence collection.
+
+It operates only when banner collection is explicitly enabled and processes confirmed open ports provided by the orchestration layer.
+
+The Go engine supports bounded reads, passive banner collection, controlled HTTP `HEAD` probing where permitted, TLS observation, output sanitization, and structured evidence.
+
+---
+
+## Execution Flow
+
+The public execution flow is:
+
+```text
+Python
+  |
+  v
+Rust TCP Engine
+  |
+  v
+Python validation and normalization
+  |
+  v
+Go Service Evidence Engine
+  |
+  v
+Python consolidation, reporting and presentation
 ```
 
-## Estado de TASK 4
+Operationally:
 
-TASK 4 — sesiones reproducibles, reanudables y observables — está consolidada,
-cerrada y congelada sobre la implementación funcional
-`77ad51f0751b29b510f574e750c1a3fa65db4a60`. Este cierre no convierte por sí
-solo a `3.0.0-rc.2` en una versión estable ni autoriza capacidades fuera del
-alcance TCP-connect y banner grabbing documentado.
+1. Python validates the request and authorized target specification.
+2. Python resolves and normalizes the target.
+3. Rust performs the TCP-connect scan.
+4. Rust streams results through JSONL.
+5. Python validates each native result.
+6. Go receives confirmed open ports when `--banner-grab` is enabled.
+7. Python validates and integrates service evidence.
+8. Results are consolidated and presented through CLI, TUI, events, and reports.
 
-## Estado de TASK 5
+Rust is the mandatory TCP engine for the public interface.
 
-TASK 5 — Enterprise Engine and Production Hardening — está en implementación
-sobre `feat/task-5-enterprise-engine-production-hardening`. SUBTASKS 5.1–5.5
-están cerradas, consolidadas y congeladas. SUBTASK 5.6 ejecuta la validación
-empresarial integral y prepara `3.0.0-rc.2` sin alterar los contratos públicos
-v1 ni `service_evidence` v2. La integración a `main`, el etiquetado y la
-publicación continúan bloqueados por una puerta formal separada. Consulta
-[docs/task-5-status.md](docs/task-5-status.md).
+Go is the mandatory service-evidence engine when banner collection is enabled.
 
-## Características Principales
+There is no silent fallback to internal Python implementations.
 
-- **Escaneo Multi-hilos**: Alta velocidad con gestión eficiente de hilos
-- **Detección de Servicios**: Identificación por puerto sin cargas de aplicación
-- **Múltiples Formatos**: Reportes en TXT, JSON, CSV y HTML
-- **Salida Dual**: Hallazgos ordenados en pantalla y reporte persistente
-- **CLI Profesional**: Interfaz de línea de comandos intuitiva y robusta
-- **TUI Multiobjetivo**: Dashboard terminal en vivo para sesiones simples o por lotes, sin lógica de red duplicada
-- **Perfiles Reproducibles**: `safe`, `standard`, `deep` y `custom`
-- **Orquestación Multiobjetivo**: Rangos, CIDR, archivos y exclusiones con concurrencia acotada
-- **Banner Grabbing Explícito**: Solo con `--banner-grab`, mediante el motor Go
-- **Cancelación Cooperativa**: Detención controlada de Rust y Go desde Python
-- **Validación Avanzada**: Verificación completa de entradas y configuraciones
-- **Estadísticas Detalladas**: Métricas completas del escaneo
+---
 
-## Rust TCP Engine v2 — candidato TASK 5.3
+## Core Capabilities
 
-El motor Rust conserva `scan_request`/`port_result` v1 y `tcp_connect`, pero
-resuelve cada objetivo una sola vez, distribuye puertos mediante un índice
-atómico y aplica backpressure con un canal acotado. La aceptación oficial se
-ejecuta únicamente sobre loopback y compara rendimiento y recursos contra la
-baseline congelada de TASK 5.1.
+CicadaPort currently provides:
 
-## Go Service Evidence Engine v2 — candidato TASK 5.4
+- TCP-connect reconnaissance through the Rust engine;
+- single-target and multi-target execution;
+- IPv4 and IPv6 resolution;
+- hostname, IP, CIDR, range, list, and target-file input;
+- bounded target and port concurrency;
+- reproducible scan profiles;
+- cooperative cancellation;
+- streaming native results;
+- explicit Go-based banner collection;
+- structured service evidence;
+- CLI and terminal-based TUI operation;
+- resumable sessions;
+- transactional session persistence;
+- TXT, JSON, CSV, and HTML reports;
+- secure artifact creation;
+- native-engine observability;
+- release and supply-chain verification tooling.
 
-El motor Go mantiene `banner_request`/`banner_result` v1 y emite cada resultado
-al finalizar el endpoint, sin acumular ni ordenar previamente toda la salida.
-Una evidencia v2 opcional registra probe, fase, longitudes, truncamiento, hash,
-timeouts y TLS observado por un descriptor separado. Solo los probes
-`passive-banner@1` y `http-head@1` están permitidos por defecto; no se incorpora
-detección de vulnerabilidades.
+CicadaPort is a reconnaissance platform. It is **not** a general-purpose vulnerability scanner or exploitation framework.
 
-## Estado técnico y hoja de ruta
+---
 
-El estado congelado, la deuda transitoria clasificada, los subhitos restantes
-del Hito 3 y su puerta formal de cierre se mantienen en
-[ROADMAP.md](ROADMAP.md). La presencia de un subhito futuro en esa hoja lo deja
-`DEFINED`, pero no autoriza su implementación: cada apertura requiere un
-contrato provisional y una aprobación expresa.
+## Supported Environment
 
-## Contratos avanzados de objetivos y evidencia
+The currently verified support matrix is:
 
-El núcleo define un contrato versionado independiente de la interfaz. Cada
-resultado de puerto conserva `is_open` como proyección derivada de compatibilidad
-del estado canónico. `state` es la fuente de verdad, `evidence.reason` sustenta
-la razón y el campo superior `reason` debe coincidir con ella. Además registra:
+```text
+Operating system:       Linux
+Architecture:           x86_64
+Validated distributions:
+  - Ubuntu 22.04
+  - Ubuntu 24.04
 
-- estado canónico `open`, `closed`, `filtered`, `unfiltered`,
-  `open|filtered` o `closed|filtered`;
-- razón técnica y evidencia que sustentan ese estado;
-- objetivo solicitado, dirección resuelta y familia IPv4/IPv6;
-- estado observado del host y técnica de escaneo utilizada;
-- versión del contrato usada por la comunicación JSON Lines con Rust y Go.
+Python:
+  - 3.10
+  - 3.11
+  - 3.12
+  - 3.13
 
-El parser acepta especificaciones individuales, varias entradas,
-CIDR, rangos IP completos y archivos con comentarios. Deduplica preservando el
-orden, permite exclusiones y aplica un límite explícito de 4096 objetivos para
-evitar expansiones masivas accidentales. La resolución usa `getaddrinfo()` y
-puede conservar todas las direcciones IPv4 e IPv6 de un hostname.
+Rust:
+  - 1.97.1
 
-La CLI conecta este contrato con el orquestador multiobjetivo. Cada dirección
-resuelta ejecuta su propio flujo especializado, conserva identidad y evidencia,
-genera un reporte independiente y puede fallar sin descartar los resultados
-correctos de otros objetivos. El progreso se consolida para toda la sesión y la
-cancelación cooperativa alcanza todos los motores activos.
+Go:
+  - 1.26.8
+```
 
-`--target-workers` limita cuántos objetivos se procesan simultáneamente.
-`--threads` es un presupuesto global: el orquestador lo reparte entre los
-objetivos activos y nunca lo multiplica silenciosamente. El descubrimiento de
-hosts, las técnicas raw y los escaneos no autorizados continúan fuera del
-alcance.
+The following environments are not currently part of the verified support matrix:
 
-## Contratos nativos v1 de Rust y Go
+```text
+Windows
+macOS
+ARM64
+Python 3.14
+```
 
-Python entrega a Rust por `stdin` una solicitud `scan_request` v1 completa:
-objetivo resuelto, puertos normalizados, timeout en milisegundos y concurrencia
-efectiva. Ningún dato contractual viaja fragmentado en argumentos del proceso.
-`--request-stdin` es la única interfaz operativa admitida por los binarios Rust
-y Go. `--help` es la única operación informativa adicional. Cualquier argumento
-histórico, desconocido, posicional o mezclado termina con código `2` antes de
-leer `stdin` o iniciar actividad de red.
+Observing successful execution on an unvalidated platform does not automatically extend the supported-platform declaration.
 
-Rust emite por `stdout` un registro `port_result` v1 por línea en el orden real
-de finalización y fuerza un `flush` después de cada resultado. Los diagnósticos
-se reservan para `stderr`. El puente valida versión, tipo de registro, estado,
-evidencia, puertos inesperados, duplicados y streams incompletos antes de
-incorporar cada observación al núcleo.
+---
 
-El progreso de la CLI y del TUI procede ahora de puertos realmente completados:
-cada línea válida actualiza inmediatamente la cobertura y los hallazgos
-abiertos. El orden de llegada no se altera durante el stream; los resultados
-solo se ordenan al consolidar la sesión y generar los reportes.
+## Installation from Source
 
-Protocolo de entrada utilizado por Python para Rust:
+Clone the current organization repository:
+
+```bash
+git clone https://github.com/Averlyth/port-scanner.git
+cd port-scanner
+```
+
+Create an isolated Python environment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install .
+```
+
+Build the required native engines:
+
+```bash
+./scripts/build_all.sh
+```
+
+Verify the installed CLI:
+
+```bash
+cicadaport --help
+cicadaport --version
+```
+
+The legacy `portscanner` entry point remains available for compatibility, while `cicadaport` is the canonical public command.
+
+---
+
+## Basic Usage
+
+A basic authorized TCP scan:
+
+```bash
+cicadaport 127.0.0.1
+```
+
+Select a port range:
+
+```bash
+cicadaport 127.0.0.1 -p 1-1000
+```
+
+Use a predefined profile:
+
+```bash
+cicadaport 127.0.0.1 --profile safe
+```
+
+Enable explicit banner collection:
+
+```bash
+cicadaport 127.0.0.1 --banner-grab
+```
+
+Open the terminal interface:
+
+```bash
+cicadaport 127.0.0.1 --profile standard --tui
+```
+
+All target specifications must remain inside an authorized assessment scope.
+
+---
+
+## Profiles
+
+CicadaPort provides reproducible execution profiles:
+
+```text
+safe
+standard
+deep
+custom
+```
+
+Profiles define controlled defaults for coverage, concurrency, timeouts, banner collection, and reporting.
+
+Explicit CLI options take precedence over profile defaults.
+
+The `deep` profile increases TCP coverage but does not transform CicadaPort into a host-discovery, UDP, SYN, operating-system fingerprinting, vulnerability-detection, or scripting framework.
+
+---
+
+## Multi-Target Orchestration
+
+The positional target may contain:
+
+- a single IP address;
+- a hostname;
+- a CIDR;
+- an IP range;
+- a comma-separated list.
+
+Additional target specifications may be provided with `--target`.
+
+Target files are supported through:
+
+```bash
+cicadaport --target-file targets.txt
+```
+
+Targets can be excluded before resolution:
+
+```bash
+cicadaport 127.0.0.1-127.0.0.4 \
+  --exclude 127.0.0.3 \
+  -p 20-25
+```
+
+Multiple targets can execute concurrently:
+
+```bash
+cicadaport 127.0.0.1 \
+  --target 127.0.0.2 \
+  -p 20-25 \
+  --threads 8 \
+  --target-workers 2
+```
+
+`--threads` represents a global concurrency budget. It is not silently multiplied for every active target.
+
+Each resolved endpoint preserves its requested target, resolved address, execution state, evidence, results, and report identity.
+
+Partial failures remain isolated so valid results from other targets are preserved.
+
+---
+
+## Terminal User Interface
+
+The TUI is a terminal-based operational monitor built over the same orchestration layer used by the CLI.
+
+It does not duplicate target parsing, network scanning, concurrency, banner collection, or report persistence.
+
+Single-target sessions use the same orchestration path as the CLI, and multi-target sessions use the common batch runtime.
+
+Example:
+
+```bash
+cicadaport 127.0.0.1 --profile standard --tui
+```
+
+The interface exposes live operational information including:
+
+- execution progress;
+- active and completed targets;
+- open endpoints;
+- engine activity;
+- timing and throughput;
+- evidence state;
+- report paths;
+- execution events.
+
+Available shortcuts:
+
+| Key | Action |
+| --- | --- |
+| `F1` | Display operational context |
+| `F5` | Repeat the validated immutable request |
+| `Ctrl+X` | Request cooperative cancellation |
+| `Ctrl+L` | Clear the event view |
+| `Q` / `F10` | Exit the interface |
+
+The interface reports state produced by the orchestration and native engines; it does not synthesize fictitious progress or scan results.
+
+---
+
+## Native JSONL Contracts
+
+CicadaPort uses versioned JSON Lines contracts between Python and the native engines.
+
+### Rust request
+
+Python sends a complete `scan_request` through standard input:
 
 ```json
 {"contract_version":1,"record_type":"scan_request","target":"127.0.0.1","ports":[22,80,443],"timeout_ms":2000,"workers":3}
 ```
 
-La salida contiene objetos JSON independientes, uno por línea:
+Rust is invoked through:
+
+```text
+rust-core --request-stdin
+```
+
+A result is emitted for each processed port:
 
 ```json
 {"contract_version":1,"record_type":"port_result","target":"127.0.0.1","address":"127.0.0.1","address_family":"ipv4","host_state":"up","port":80,"protocol":"tcp","state":"open","reason":"connection_accepted","technique":"tcp_connect","service":"HTTP","banner":null,"response_time":0.001,"is_open":true,"evidence":{"reason":"connection_accepted","source":"rust","errno":0}}
 ```
 
-Go usa el mismo aislamiento: recibe un `banner_request` v1 completo mediante
-`--request-stdin` y emite un `banner_result` v1 por cada puerto abierto
-solicitado. Cada resultado declara explícitamente `captured`, `empty` o `error`;
-los resultados vacíos y los fallos no desaparecen silenciosamente.
+### Go request
+
+Go receives a complete `banner_request`:
 
 ```json
 {"contract_version":1,"record_type":"banner_request","target":"127.0.0.1","ports":[80,443],"timeout_ms":3000}
 ```
 
+The engine is invoked through:
+
+```text
+go-banner --request-stdin
+```
+
+Each requested port produces an explicit result:
+
 ```json
 {"contract_version":1,"record_type":"banner_result","target":"127.0.0.1","port":80,"status":"captured","service":"HTTP","banner":"HTTP/1.0 200 OK","error":null,"source":"go"}
 ```
 
-### Migración de invocaciones nativas directas
+A banner result explicitly reports `captured`, `empty`, or `error`; missing evidence is not silently converted into success.
 
-Las rutas históricas se retiraron en el Subhito 3.2.9. Los binarios son
-componentes internos; la interfaz pública continúa siendo `cicadaport`. La
-etiqueta firmada `subhito-3.2.8` conserva el último estado que admitía estas
-formas, que ya no están soportadas:
+---
+
+## Native Interface Guarantees
+
+`--request-stdin` is the only operational process interface accepted by the Rust and Go native binaries.
+
+`--help` is the only additional informational operation.
+
+Unknown, positional, legacy, or mixed native arguments terminate before network activity.
+
+During contract execution:
+
+```text
+stdin   -> complete versioned request
+stdout  -> JSONL contract records only
+stderr  -> diagnostics only
+```
+
+Python validates native data before incorporating it into the application state.
+
+Validation includes:
+
+- contract version;
+- record type;
+- required fields;
+- unexpected fields;
+- requested targets;
+- requested ports;
+- duplicate records;
+- incomplete streams;
+- state consistency;
+- evidence consistency.
+
+---
+
+## Legacy Native Invocation Migration
+
+Historical direct native interfaces are no longer supported.
+
+Examples of removed invocation forms include:
 
 ```bash
 rust-core --host 127.0.0.1 --ports 80,443
@@ -175,281 +444,330 @@ rust-core --host 127.0.0.1 --ports-stdin --timeout 1 --workers 2
 go-banner --host 127.0.0.1 --ports 80,443 --timeout 1
 ```
 
-La migración consiste en enviar una solicitud v1 completa por `stdin`:
+Native integrations must use the versioned standard-input contract:
 
 ```bash
 printf '%s\n' \
-  '{"contract_version":1,"record_type":"scan_request","target":"127.0.0.1","ports":[80,443],"timeout_ms":1000,"workers":2}' | \
+  '{"contract_version":1,"record_type":"scan_request","target":"127.0.0.1","ports":[80,443],"timeout_ms":1000,"workers":2}' |
   rust-core --request-stdin
-
-printf '%s\n' \
-  '{"contract_version":1,"record_type":"banner_request","target":"127.0.0.1","ports":[80,443],"timeout_ms":1000}' | \
-  go-banner --request-stdin
 ```
 
-Esta consolidación no cambia las versiones, los campos ni la semántica de los
-contratos JSONL v1.
+The public interface remains the `cicadaport` command rather than direct native-engine invocation.
 
-Antes de incorporar registros al núcleo, Python rechaza versiones o tipos
-incorrectos, campos ausentes o desconocidos, objetivos y puertos no
-solicitados, duplicados, respuestas incompletas y combinaciones incoherentes de
-estado, banner y error.
+---
 
-## Flujo especializado obligatorio
+## Service and Banner Evidence
 
-El flujo público activo es siempre `Python → Rust → Python → Go → Python`:
+TCP reconnaissance does not send application payloads by default.
 
-1. Python valida la solicitud, resuelve el objetivo y prepara el contrato.
-2. Rust ejecuta obligatoriamente el escaneo TCP y transmite resultados JSONL.
-3. Python valida y normaliza cada resultado.
-4. Go recibe únicamente los puertos confirmados como abiertos cuando
-   `--banner-grab` está habilitado.
-5. Python integra los banners y genera la salida, las estadísticas y el reporte.
-
-Antes de resolver el objetivo o iniciar el escaneo, el orquestador comprueba el
-binario Rust y, si se solicitaron banners, también el binario Go. Si falta un
-motor requerido, la sesión falla con un diagnóstico claro y recomienda ejecutar
-`./scripts/build_all.sh`; nunca cambia silenciosamente a Python.
-
-La CLI no expone selectores de motor: Rust es siempre el motor TCP público y
-Go es el único motor de banners cuando `--banner-grab` está habilitado. Las
-opciones históricas `--engine` y `--banner-engine` ya no se reconocen y terminan
-con código `2` antes de resolver objetivos o iniciar actividad de red. Para
-migrar automatizaciones existentes, elimina esos argumentos; el flujo efectivo
-permanece invariable y nunca utiliza fallback Python.
-
-Las implementaciones Python de escaneo y banners permanecen en el repositorio
-como referencia interna y soporte de pruebas, pero no son seleccionables desde
-la interfaz pública.
-
-## Instalación Rápida
+Banner collection must be explicitly enabled:
 
 ```bash
-# Clonar el repositorio
-git clone https://github.com/DrewSC13/port-scanner.git
-cd port-scanner
-
-# Crear un entorno virtual e instalar la aplicación
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install .
-
-# Compilar los motores obligatorios
-./scripts/build_all.sh
-
-# Mostrar la ayuda de la CLI instalada
-cicadaport --help
-```
-
-## TUI y perfiles
-
-La CLI es la fuente de configuración tanto para automatización como para la
-interfaz en vivo. Los objetivos y todas las opciones se escriben primero en la
-consola; después, `--tui` abre el monitor dentro de esa misma terminal e inicia
-la solicitud inmutable automáticamente. El TUI consume `ScanOrchestrator.run()`
-para una dirección y `ScanOrchestrator.run_many()` para sesiones multiobjetivo;
-no reimplementa resolución, concurrencia, escaneo, banners ni reportes:
-
-```bash
-cicadaport 192.168.1.10 --profile standard --tui
-```
-
-El monitor usa un diseño terminal moderno inspirado en herramientas como
-`btop`, con una estética de glasmorfismo adaptada a las capacidades reales de
-la consola: fondo negro azulado, superficies azul petróleo, bordes de bajo
-contraste y acentos cian, violeta y ámbar. Los paneles mantienen separación
-visual y no emplean botones, formularios, desplegables ni una segunda línea de
-comandos.
-
-La telemetría distribuye la información por jerarquía: señal RTT y respuesta de
-puertos, tarjetas de velocidad y estados, cobertura con ETA, plan de ejecución,
-endpoints abiertos, eventos del motor y evidencia del último servicio. Todos
-los valores proceden del núcleo de escaneo; la interfaz no genera progreso ni
-resultados ficticios.
-
-El TUI conserva el fondo predeterminado del emulador en lugar de rellenar la
-pantalla con un color opaco. Esto permite usar transparencia y desenfoque reales
-cuando el emulador y el compositor los ofrecen. En Konsole, el efecto se activa
-en el perfil utilizado por CicadaPort: edita su esquema de colores, reduce
-moderadamente la opacidad del fondo y habilita **Desenfocar fondo**. Si esas
-opciones no están disponibles, el monitor mantiene un fondo terminal normal sin
-afectar su legibilidad ni su funcionamiento.
-
-```bash
-# Perfil conservador y reporte de texto
-cicadaport 192.168.1.10 --profile safe --tui
-
-# TCP completo, enumeración de servicios y reporte JSON
-cicadaport 192.168.1.10 --profile deep --format json --tui
-
-# Rango de puertos definido manualmente y banners Go explícitos
-cicadaport 192.168.1.10 --profile custom -p 20-443 \
-  --banner-grab --tui
-
-# Dos objetivos locales con progreso global y reportes independientes
-cicadaport 127.0.0.1 --target 127.0.0.2 \
-  -p 4444 --threads 4 --target-workers 2 --tui
-
-# Rango de objetivos con exclusión monitorizado desde el dashboard
-cicadaport 127.0.0.1-127.0.0.4 --exclude 127.0.0.3 \
-  -p 20-25 --threads 6 --target-workers 2 --tui
-```
-
-Atajos disponibles dentro del monitor:
-
-| Atajo | Acción |
-|---|---|
-| `F1` | Muestra el contexto operativo |
-| `F5` | Repite la misma solicitud ya validada |
-| `Ctrl+X` | Cancela los motores de forma cooperativa |
-| `Ctrl+L` | Limpia únicamente el flujo de eventos |
-| `Q` o `F10` | Sale del monitor |
-
-Al terminar, la pantalla conserva los hallazgos ordenados, estadísticas,
-evidencia disponible y las rutas de los reportes. En sesiones multiobjetivo,
-cada endpoint muestra el objetivo solicitado y la dirección resuelta; el panel
-de ejecución mantiene contadores de objetivos activos, completados y fallidos,
-y el resumen final conserva los resultados correctos aunque otro objetivo falle.
-
-Los perfiles fijan valores reproducibles, pero las opciones manuales siguen
-teniendo prioridad:
-
-```bash
-# Puertos comunes, baja concurrencia y sin banners
-cicadaport 192.168.1.10 --profile safe
-
-# TCP 1-1000 con Rust y banners Go
-cicadaport 192.168.1.10 --profile standard
-
-# TCP 1-65535 y enumeración de servicios abiertos
-cicadaport 192.168.1.10 --profile deep
-
-# Configuración manual conservando el flujo especializado
-cicadaport 192.168.1.10 --profile custom -p 22-443
-```
-
-Las opciones manuales de puertos, concurrencia, timeout, banners y salida siguen
-teniendo prioridad sobre el perfil. El motor TCP permanece fijado en Rust y la
-fase de banners, cuando está activa, permanece fijada en Go, sin selectores ni
-fallback. El perfil `deep` amplía la cobertura TCP, pero no sustituye por sí
-solo las técnicas de descubrimiento, UDP, SYN, identificación de sistema
-operativo o scripting especializado de otras herramientas.
-
-## Orquestación multiobjetivo
-
-El objetivo posicional puede contener una IP, un hostname, un CIDR, un rango o
-una lista separada por comas. `--target` añade especificaciones y puede
-repetirse. `--target-file` incorpora archivos UTF-8 con comentarios iniciados
-por `#`; `--exclude` elimina objetivos antes de resolverlos.
-
-```bash
-# Dos direcciones explícitas del laboratorio local
-cicadaport 127.0.0.1 --target 127.0.0.2 \
-  -p 20-25 --threads 8 --target-workers 2
-
-# Rango local con una exclusión
-cicadaport 127.0.0.1-127.0.0.4 \
-  --exclude 127.0.0.3 \
-  -p 20-25 --threads 12 --target-workers 3
-
-# Archivo de objetivos autorizados
-cicadaport --target-file objetivos.txt \
-  --exclude 127.0.0.2 \
-  --report-dir reports/laboratorio
-```
-
-Con varios objetivos, cada dirección resuelta recibe un nombre de reporte
-único dentro de `--report-dir`. `--output` se reserva para sesiones con un solo
-objetivo porque representa una ruta exacta. La salida de consola resume
-objetivos solicitados, direcciones resueltas, éxitos, fallos, hallazgos y
-presupuesto efectivo de concurrencia. Si al menos un objetivo falla, los
-reportes correctos se conservan y la CLI termina con código `2`.
-
-El TUI admite el mismo contrato multiobjetivo que la salida lineal. El
-progreso global, los fallos parciales y la identidad de cada endpoint proceden
-de los eventos emitidos por `ScanOrchestrator.run_many()`. `F5` repite el lote
-inmutable completo y `Ctrl+X` propaga la cancelación cooperativa a todos los
-motores activos. Los parámetros continúan bloqueados desde la CLI: el dashboard
-monitoriza la sesión, pero no edita objetivos ni opciones durante la ejecución.
-
-```bash
-# Monitor multiobjetivo con presupuesto global de cuatro hilos
-cicadaport 127.0.0.1 --target 127.0.0.2 \
-  -p 4444 --threads 4 --target-workers 2 --tui
-```
-
-## Uso seguro del banner grabbing
-
-El escaneo TCP no envía cargas de aplicación por defecto. Para solicitar
-banners de forma explícita:
-
-```bash
-# Rust ejecuta TCP y Go captura los banners solicitados
 cicadaport localhost --banner-grab
+```
 
-# Un perfil con banners puede desactivarlos explícitamente
+It can also be disabled when enabled by a profile:
+
+```bash
 cicadaport localhost --profile standard --no-banner-grab
 ```
 
-Go negocia TLS en los puertos cifrados conocidos, envía un único `HEAD` solo a
-una lista cerrada de puertos HTTP/HTTPS y se limita a lectura pasiva en los
-demás servicios.
+The Go engine can perform controlled service evidence collection using the currently permitted probes, including:
 
-## Persistencia transaccional y artefactos privados
-
-Las sesiones nuevas usan Session Store v2 sobre SQLite WAL. Los resultados se
-confirman por lotes normalizados y el checkpoint público v1 se reconstruye al
-leer, por lo que la compatibilidad externa permanece estable sin generar dos
-archivos completos por puerto. El perfil `balanced` confirma hasta 128
-resultados por transacción; el perfil `strict` confirma uno por transacción.
-Las sesiones v1 se migran de manera verificable, idempotente y de solo lectura:
-los archivos fuente permanecen intactos para auditoría y rollback.
-
-Los reportes, eventos y bundles usan directorios `0700`, archivos `0600`,
-creación exclusiva, temporales en el mismo filesystem, `fsync`, rechazo de
-symlinks y no sobrescritura por defecto. TXT, CSV y HTML neutralizan controles
-C0/C1, ESC/BEL y marcas bidi/invisibles antes de presentarlos a una persona.
-
-## Resultados y reportes
-
-Cada escaneo muestra en la terminal todos los puertos abiertos, ordenados por
-protocolo y número de puerto. Para cada hallazgo se incluyen el servicio, el
-banner disponible y el tiempo de respuesta. El mismo escaneo guarda además un
-reporte dentro de `reports/`.
-
-```bash
-# Muestra los hallazgos y crea automáticamente reports/scan_report_*.txt
-cicadaport localhost -p 1-1000
-
-# Muestra los mismos hallazgos y guarda el reporte persistente como JSON
-cicadaport localhost -p 1-1000 --format json
-
-# Un nombre simple se guarda dentro de reports/
-cicadaport localhost -p 1-1000 --output auditoria --format html
-
-# Cambiar la carpeta predeterminada
-cicadaport localhost -p 1-1000 --report-dir resultados
-
-# Una ruta explícita se respeta y sus carpetas se crean si no existen
-cicadaport localhost -p 1-1000 --output resultados/cliente/reporte.csv --format csv
+```text
+passive-banner@1
+http-head@1
 ```
 
-Las extensiones automáticas son `.txt`, `.json`, `.csv` y `.html`. Los nombres
-automáticos nunca sobrescriben un reporte existente: cuando coinciden objetivo
-y segundo de ejecución, se añade un sufijo como `_2` o `_3`. Si el escaneo no
-detecta puertos abiertos, la terminal y el reporte TXT lo indican expresamente.
-Los reportes añaden de forma compatible el estado, la razón, la dirección y la
-técnica. TXT, JSON, CSV y HTML identifican también los motores efectivos
-`rust` y `go` —o `no usado` cuando la fase de banners está desactivada—; JSON
-incluye además la versión del contrato.
+TLS observation and HTTP probing remain bounded and explicitly controlled.
 
+CicadaPort does not enable vulnerability detection, exploitation, unrestricted active probing, or arbitrary application payload execution through this mechanism.
 
-## Supply chain y reproducibilidad de release
+---
 
-TASK 5.5 fija cada GitHub Action por SHA completa, instala las herramientas de
-release desde un lock Python con hashes, genera SBOM CycloneDX 1.6 y manifiestos
-de identidad, compara builds byte a byte y configura attestations Sigstore/SLSA.
-SUBTASK 5.6 reutiliza estos controles para construir y validar RC2 de forma
-reproducible. Los artefactos de CI siguen siendo candidatos privados: no se
-crea etiqueta, no se publica una GitHub Release y no se amplían capacidades de
-red.
+## Session Persistence
+
+CicadaPort uses Session Store v2 with SQLite WAL for current session persistence.
+
+Observed results are persisted through normalized transactional operations.
+
+The persistence model supports:
+
+- bounded transaction batches;
+- checkpoints;
+- resumable execution;
+- immutable execution plans;
+- integrity history;
+- recovery from interrupted sessions;
+- migration from version-1 session data.
+
+Version-1 source session files are preserved during migration for audit and rollback purposes.
+
+---
+
+## Secure Artifacts
+
+Reports, event streams, and export bundles use security-oriented filesystem controls.
+
+The implementation includes:
+
+```text
+Private directories: 0700
+Private files:       0600
+Exclusive creation
+Atomic replacement
+Same-filesystem temporary files
+fsync confirmation
+Symlink rejection
+No overwrite by default
+```
+
+Human-readable outputs also sanitize potentially dangerous terminal and Unicode control data before presentation.
+
+---
+
+## Results and Reports
+
+CicadaPort supports:
+
+```text
+TXT
+JSON
+CSV
+HTML
+```
+
+A standard scan automatically creates a report:
+
+```bash
+cicadaport localhost -p 1-1000
+```
+
+Select JSON output:
+
+```bash
+cicadaport localhost -p 1-1000 --format json
+```
+
+Specify a report name:
+
+```bash
+cicadaport localhost \
+  -p 1-1000 \
+  --output audit \
+  --format html
+```
+
+Select a report directory:
+
+```bash
+cicadaport localhost \
+  -p 1-1000 \
+  --report-dir results
+```
+
+Use an explicit output path:
+
+```bash
+cicadaport localhost \
+  -p 1-1000 \
+  --output results/customer/report.csv \
+  --format csv
+```
+
+Automatic report names do not silently overwrite an existing report.
+
+Reports preserve available technical context including target identity, resolved address, state, reason, service evidence, technique, and effective native engines.
+
+HTML output escapes target and service data.
+
+CSV output neutralizes formula cells.
+
+---
+
+## Security Model
+
+CicadaPort is designed around conservative operational boundaries.
+
+The project does not currently expose the following capabilities through its supported public reconnaissance workflow:
+
+- unauthorized third-party scanning;
+- raw-socket scanning;
+- SYN scanning;
+- UDP scanning;
+- unrestricted host discovery;
+- vulnerability detection;
+- exploit execution;
+- destructive testing;
+- arbitrary offensive scripting.
+
+The absence of these capabilities is intentional.
+
+Contributions must not silently expand the network or offensive-security surface.
+
+See [SECURITY.md](SECURITY.md) for vulnerability-reporting requirements.
+
+---
+
+## Supply-Chain and Release Integrity
+
+The release process includes controls for software and artifact provenance.
+
+Current mechanisms include:
+
+- external GitHub Actions pinned to reviewed commit SHAs;
+- dependency verification;
+- Python release locks with hashes;
+- Rust and Go dependency checks;
+- Bandit analysis;
+- Gitleaks secret scanning;
+- CycloneDX 1.6 SBOM generation;
+- artifact manifests;
+- SHA-256 integrity records;
+- reproducibility checks;
+- isolated wheel and source-distribution tests;
+- GitHub attestations;
+- Sigstore/SLSA-oriented verification.
+
+Release-candidate artifacts produced by CI do not automatically become public releases.
+
+Tag creation, published GitHub Releases, source versioning, and candidate validation remain distinct lifecycle operations.
+
+---
+
+## Building Release Artifacts
+
+Install the release dependencies:
+
+```bash
+python -m pip install -r requirements-release.txt
+```
+
+Build the artifacts:
+
+```bash
+./scripts/build_release_artifacts.sh
+```
+
+Validate them in isolation:
+
+```bash
+./scripts/test_release_artifacts.sh dist
+```
+
+Run dependency auditing:
+
+```bash
+./scripts/audit_dependencies.sh
+```
+
+---
+
+## Development Validation
+
+Development requires the supported Python, Rust, Go, Bash, and Linux toolchains.
+
+The primary validation flow is:
+
+```bash
+./scripts/build_all.sh
+./scripts/test_all.sh
+bash -n scripts/*.sh
+shellcheck scripts/*.sh
+```
+
+Focused checks include:
+
+```bash
+python -m pytest -v --cov=src --cov-report=term-missing
+
+cargo fmt \
+  --manifest-path rust-core/Cargo.toml \
+  -- --check
+
+cargo clippy \
+  --manifest-path rust-core/Cargo.toml \
+  --all-targets \
+  --all-features \
+  -- -D warnings
+
+cargo test \
+  --manifest-path rust-core/Cargo.toml
+```
+
+Go validation is run from `go-banner/`:
+
+```bash
+go test -race ./...
+```
+
+A change should not be integrated while a required validation check is failing.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete contribution contract.
+
+---
+
+## Engineering History and Provenance
+
+CicadaPort preserves its technical and Git history across organizational migration.
+
+Historical engineering documents under `docs/`, signed commits, signed tags, acceptance records, contracts, manifests, and audit evidence may contain state labels that describe a project gate **at the time that evidence was created**.
+
+Those historical values are intentionally preserved for traceability and must not be interpreted as the current repository state without considering subsequent integration commits.
+
+Organizational ownership by Averlyth does not rewrite historical authorship or provenance.
+
+Original development history remains attributed to its original authors.
+
+---
+
+## Governance
+
+The canonical repository owner is **Averlyth**.
+
+Technical ownership is declared through `.github/CODEOWNERS`.
+
+Repository changes are expected to remain:
+
+- atomic;
+- reviewable;
+- signed where required;
+- reproducible;
+- traceable;
+- compatible with applicable contracts;
+- green under required CI controls.
+
+Security-sensitive functionality must not be introduced implicitly through unrelated changes.
+
+---
+
+## Responsible Use
+
+CicadaPort must only be used against:
+
+- systems you own;
+- controlled laboratories;
+- systems or networks for which you have explicit authorization.
+
+Users are responsible for ensuring that every target specification, expanded range, CIDR, hostname, address, and target-file entry remains within the authorized assessment scope.
+
+Unauthorized scanning or activity against third-party infrastructure is outside the intended use of this project.
+
+---
+
+## License
+
+CicadaPort is distributed under the [MIT License](LICENSE.md).
+
+---
+
+## Organization
+
+**Averlyth**
+Cybersecurity Engineering · Security Research · Security Tooling
+
+CicadaPort is maintained as part of the **Obscuryx Security Platform**.
+
+Organization: [github.com/Averlyth](https://github.com/Averlyth)
+
+Repository: [github.com/Averlyth/port-scanner](https://github.com/Averlyth/port-scanner)

@@ -93,7 +93,7 @@ Python distribution versions use the equivalent PEP 440 spelling.
 - RC2 publication, `main` integration and release tagging remain blocked behind
   a separate formal gate.
 
-## [3.0.0-rc.1] - Unreleased
+## [3.0.0-rc.1] - 2026-07-26
 
 ### Added
 

@@ -10,7 +10,8 @@ readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10,<3.14"
 license = "MIT"
 license-files = ["LICENSE.md"]
-authors = [{ name = "DrewSC13", email = "drew_13_@outlook.com" }]
+authors = [{ name = "DrewSC13" }]
+maintainers = [{ name = "Averlyth" }]
 keywords = ["security", "networking", "port-scanner", "rust", "go"]
 dependencies = ["textual>=0.80,<9"]
 classifiers = [
@@ -27,11 +28,11 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/DrewSC13/port-scanner"
-Repository = "https://github.com/DrewSC13/port-scanner"
-Issues = "https://github.com/DrewSC13/port-scanner/issues"
-Changelog = "https://github.com/DrewSC13/port-scanner/blob/main/CHANGELOG.md"
-Security = "https://github.com/DrewSC13/port-scanner/blob/main/SECURITY.md"
+Homepage = "https://github.com/Averlyth/port-scanner"
+Repository = "https://github.com/Averlyth/port-scanner"
+Issues = "https://github.com/Averlyth/port-scanner/issues"
+Changelog = "https://github.com/Averlyth/port-scanner/blob/main/CHANGELOG.md"
+Security = "https://github.com/Averlyth/port-scanner/blob/main/SECURITY.md"
 
 [project.scripts]
 cicadaport = "main:main"

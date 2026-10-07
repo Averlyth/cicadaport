@@ -18,9 +18,19 @@ CURRENT_PUBLIC_RELEASE=v3.0.0-rc.1
 PROPOSED_FINAL_RC=v3.0.0-rc.3
 TARGET_STABLE_RELEASE=v3.0.0
 
-SUBTASK_8_0=IN_IMPLEMENTATION
-SUBTASK_8_1=BLOCKED_BY_8_0
-SUBTASK_8_2=BLOCKED
+SUBTASK_8_0=COMPLETED_CONSOLIDATED_CLOSED_FROZEN
+SUBTASK_8_0_IMPLEMENTATION_COMMIT=e8e9d0f3ec72a783f6b1289c3a965b720226fc02
+SUBTASK_8_0_PR=24
+SUBTASK_8_0_MERGE_COMMIT=291b05ffe82e402c0b7deff41f4d4ce034ebe4d1
+SUBTASK_8_0_PREMERGE_PUSH_CI_RUN=37666907282
+SUBTASK_8_0_PREMERGE_PR_CI_RUN=37666962395
+SUBTASK_8_0_POST_MERGE_CI_RUN=37668126398
+SUBTASK_8_0_POST_MERGE_CI_ATTEMPT_1=CANCELLED
+SUBTASK_8_0_POST_MERGE_CI_ATTEMPT_2=PASS
+SUBTASK_8_0_POST_MERGE_CI=PASS_AFTER_RERUN
+
+SUBTASK_8_1=AUTHORIZED_NOT_STARTED
+SUBTASK_8_2=BLOCKED_BY_8_1
 SUBTASK_8_3=BLOCKED
 SUBTASK_8_4=BLOCKED
 SUBTASK_8_5=BLOCKED
@@ -81,6 +91,59 @@ retroactivamente.
 8.9 v3.0.0 publication and post-release verification
 ```
 
+## Cierre de SUBTASK 8.0
+
+SUBTASK 8.0 queda cerrada y congelada sobre la integración verificada de la PR
+`#24`.
+
+Evidencia consolidada:
+
+```text
+IMPLEMENTATION_COMMIT=e8e9d0f3ec72a783f6b1289c3a965b720226fc02
+IMPLEMENTATION_SIGNATURE=PASS_SSH_ED25519
+
+PR=24
+PR_PREMERGE_STATE=CLEAN
+PR_PREMERGE_MERGEABLE=MERGEABLE
+
+PREMERGE_PUSH_CI_RUN=37666907282
+PREMERGE_PUSH_CI=PASS
+
+PREMERGE_PR_CI_RUN=37666962395
+PREMERGE_PR_CI=PASS
+
+MERGE_COMMIT=291b05ffe82e402c0b7deff41f4d4ce034ebe4d1
+MERGE_SIGNATURE=VERIFIED_VALID_BY_GITHUB
+MERGE_PARENT_1=b1c963f93cb21a2e3b06900451d96e5df752f0b3
+MERGE_PARENT_2=e8e9d0f3ec72a783f6b1289c3a965b720226fc02
+
+POST_MERGE_CI_RUN=37668126398
+POST_MERGE_CI_ATTEMPT_1=CANCELLED
+POST_MERGE_CI_ATTEMPT_1_CLASSIFICATION=OPERATIONAL_CANCELLATION_NO_TEST_REGRESSION
+POST_MERGE_CI_ATTEMPT_2=PASS
+POST_MERGE_CI_ATTEMPT_2_SUCCESS_JOBS=26
+POST_MERGE_CI=PASS_AFTER_RERUN
+
+FILES_ADDED=2
+INSERTIONS=725
+DELETIONS=0
+SCOPE_VIOLATIONS=0
+```
+
+El primer intento del CI post-merge terminó cancelado. Los jobs ya ejecutados
+habían resultado satisfactorios salvo `Shell`, que quedó cancelado, y la
+integración fue omitida como consecuencia de esa cancelación. El segundo intento
+ejecutó 26 jobs y los 26 finalizaron satisfactoriamente. No existe evidencia de
+una regresión funcional asociada al primer intento.
+
+La imposibilidad del keyring local de verificar la firma RSA del merge de
+GitHub no invalida la firma: GitHub registra el merge commit como
+`verified=true` y `reason=valid`.
+
+No se creó etiqueta específica para SUBTASK 8.0. El cierre contractual de TASK
+8 y cualquier etiqueta institucional asociada permanecen reservados para el
+gate final correspondiente.
+
 ## Estado inicial de dependencias
 
 ```text
@@ -96,8 +159,9 @@ PR_21=OPEN
 DEPENDENCY_BACKLOG=OPEN
 ```
 
-SUBTASK 8.1 no se considera completada hasta que cada PR tenga una resolución
-explícita y verificable.
+SUBTASK 8.1 queda formalmente autorizada para iniciar desde el `main` resultante
+del cierre de SUBTASK 8.0. No se considera completada hasta que cada PR tenga
+una resolución explícita y verificable.
 
 ## Gates actualmente pendientes
 

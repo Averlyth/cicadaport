@@ -76,7 +76,7 @@ def test_contract_v1_and_async_resource_limits_remain_explicit() -> None:
     cargo = (REPOSITORY_ROOT / "rust-core" / "Cargo.toml").read_text(
         encoding="utf-8"
     )
-    assert 'tokio = { version = "=1.52.3"' in cargo
+    assert 'tokio = { version = "=1.53.1"' in cargo
     assert "rt-multi-thread" in cargo
     assert "net" in cargo
     assert "time" in cargo

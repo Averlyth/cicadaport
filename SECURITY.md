@@ -26,7 +26,7 @@ The currently verified support matrix is limited to:
 - Ubuntu 24.04;
 - Python 3.10 through 3.13;
 - Rust 1.97.1;
-- Go 1.26.5.
+- Go 1.26.8.
 
 Windows, macOS, ARM64, and Python 3.14 are not currently part of the verified support matrix.
 

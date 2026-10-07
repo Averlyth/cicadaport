@@ -6,7 +6,7 @@
 | Architecture | Linux x86_64 |
 | Python | 3.10, 3.11, 3.12, 3.13 |
 | Rust | 1.97.1 |
-| Go | 1.26.5 |
+| Go | 1.26.8 |
 | Wheel | Linux x86_64 with mandatory native engines |
 | Source distribution | Python, Rust and Go sources |
 | Network tests | Loopback only |

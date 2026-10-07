@@ -1,92 +1,56 @@
 # Contributing to CicadaPort
 
-Thank you for helping improve CicadaPort. Contributions must preserve accurate
-results, safe defaults, and the mandatory specialized flow implemented by
-Python, Rust, and Go.
+Thank you for contributing to CicadaPort.
 
-## Safety and authorization
+CicadaPort is maintained by **Averlyth** as part of the **Obscuryx Security Platform**.
 
-Run network tests only against `127.0.0.1`, systems you own, or systems for
-which you have explicit written authorization. Never add CI tests that depend
-on public targets.
+Contributions must preserve accurate results, safe defaults, explicit authorization boundaries, reproducible behavior, historical provenance, and the specialized Python, Rust, and Go architecture.
 
-Security vulnerabilities must follow [SECURITY.md](SECURITY.md) and must not be
-submitted through a public issue or pull request.
+## Safety and Authorization
 
-## Roadmap governance
+Network tests must be limited to:
 
-[ROADMAP.md](ROADMAP.md) is the normative index for completed work, transitional
-debt, dependencies, and the remaining Hito 3 sequence. A future entry marked
-`DEFINED` is planning, not implementation authorization.
+- `127.0.0.1` and other controlled loopback fixtures;
+- systems you own;
+- controlled laboratories;
+- systems or networks for which you have explicit authorization.
 
-Roadmap changes must:
+Do not introduce CI tests that depend on arbitrary public targets.
 
-- distinguish frozen facts from proposals;
-- preserve signed commit and tag references for closed subhitos;
-- update status only when the required evidence exists;
-- keep Hito 4 blocked until a separate formal authorization;
-- remain atomic, signed, reviewable, and fully green in CI.
+Security vulnerabilities must follow [SECURITY.md](SECURITY.md) and must not be disclosed through a public pull request or public issue.
 
-A functional subhito must update the affected documentation as part of its
-controlled closing flow. Do not combine unrelated roadmap changes with
-unapproved implementation work.
+## Repository Governance
 
-## Specialized public interface
+The canonical repository is owned by **Averlyth**.
 
-The public CLI does not expose engine selectors. Contributions must preserve
-these invariants:
+Technical ownership is defined through `.github/CODEOWNERS`.
 
-- Rust is the mandatory public TCP engine.
-- Go is the mandatory banner engine when `--banner-grab` is enabled.
-- `--engine` and `--banner-engine` are not accepted public options.
-- Legacy selector arguments must fail through `argparse` with exit code `2`
-  before target resolution, binary preflight, network activity, or report
-  creation.
-- Programmatic requests must use the canonical internal values `rust` and `go`;
-  incompatible values must fail before network activity.
-- There is no silent fallback to the internal Python implementations.
-- CLI, TUI, and reports must continue to expose the effective engine metadata.
+The protected `main` branch is governed through repository rules and required CI checks.
 
-## Native process interface
+Contributions targeting `main` must:
 
-The native binaries accept exactly one operational process interface:
+- use a pull request;
+- preserve a reviewable and auditable commit history;
+- satisfy all required status checks;
+- avoid non-fast-forward history rewriting;
+- preserve applicable signed commits, tags, release records, and historical engineering evidence;
+- use the repository's permitted merge strategy;
+- avoid unrelated changes in the same integration unit.
 
-```text
-rust-core --request-stdin
-go-banner --request-stdin
-```
+Historical contracts, acceptance records, signed tags, manifests, and engineering documents describe the state that existed when they were created and must not be rewritten merely to make older records appear current.
 
-`--help` is the only additional informational operation. Historical options,
-unknown options, positional arguments, an empty invocation, and any mixed
-invocation must exit with code `2` before reading standard input or starting
-network activity. Contract or execution failures use code `1`; successful
-contract execution and help use code `0`.
-
-Native protocol rules:
-
-- the complete v1 request travels through `stdin`;
-- `stdout` contains only JSONL contract records during execution;
-- diagnostics are written only to `stderr`;
-- the Python bridges must invoke native binaries with the exact argument vector
-  `["--request-stdin"]`;
-- Rust must retain incremental `port_result` streaming and per-record flushing;
-- Go must emit one `banner_result` JSONL record for every requested port;
-- no historical aggregate JSON output or fragmented argument contract may be
-  reintroduced.
-
-Any process-interface change requires direct Rust and Go tests plus the native
-surface checks in `scripts/test_all.sh`.
-
-## Development setup
+## Development Setup
 
 Required toolchains:
 
-- Python 3.10, 3.11, 3.12 or 3.13;
+- Python 3.10, 3.11, 3.12, or 3.13;
 - Rust 1.97.1 with `rustfmt` and Clippy;
 - Go 1.26.5;
-- Linux x86_64, Bash and ShellCheck.
+- Linux x86_64;
+- Bash;
+- ShellCheck.
 
-Create a virtual environment and install development dependencies:
+Create an isolated environment:
 
 ```bash
 python3 -m venv .venv
@@ -101,9 +65,156 @@ Build the native engines:
 ./scripts/build_all.sh
 ```
 
-## Required validation
+## Architecture Boundaries
 
-Before every commit, run:
+The public execution architecture is:
+
+```text
+Python
+  |
+  v
+Rust TCP Engine
+  |
+  v
+Python validation and normalization
+  |
+  v
+Go Service Evidence Engine
+  |
+  v
+Python consolidation and presentation
+```
+
+The responsibility boundaries must remain explicit.
+
+### Python
+
+Python owns orchestration, validation, CLI/TUI behavior, sessions, reporting, configuration, and native-engine integration.
+
+### Rust
+
+Rust is the mandatory public TCP scanning engine.
+
+### Go
+
+Go is the mandatory service-evidence engine when banner collection is enabled.
+
+Presentation layers must not duplicate network-scanning logic.
+
+## Specialized Public Interface
+
+The public CLI does not expose native-engine selectors.
+
+Contributions must preserve these invariants:
+
+- Rust remains the mandatory public TCP engine;
+- Go remains the mandatory banner engine when `--banner-grab` is enabled;
+- `--engine` and `--banner-engine` are not accepted public options;
+- legacy selector arguments fail through `argparse` with exit code `2`;
+- failures occur before target resolution, binary execution, network activity, or report creation where required by the contract;
+- internal programmatic requests use the canonical engine identities `rust` and `go`;
+- incompatible internal engine values fail before network activity;
+- there is no silent fallback to the internal Python implementations;
+- CLI, TUI, events, and reports preserve effective engine metadata.
+
+A change to these invariants requires corresponding tests and explicit technical review.
+
+## Native Process Interface
+
+The native binaries accept one operational process interface:
+
+```text
+rust-core --request-stdin
+go-banner --request-stdin
+```
+
+`--help` is the only additional informational operation.
+
+Historical arguments, unknown arguments, positional arguments, an empty invocation, and incompatible mixed invocations must fail before network activity.
+
+Exit-code semantics must remain explicit:
+
+```text
+0 = successful contract execution or help
+1 = contract or execution failure
+2 = invalid process invocation
+```
+
+Native protocol rules:
+
+- the complete versioned request travels through `stdin`;
+- `stdout` contains JSONL contract records only during execution;
+- diagnostics are written to `stderr`;
+- Python invokes native binaries through the canonical `--request-stdin` interface;
+- Rust preserves incremental `port_result` streaming;
+- Rust flushes results as required by the streaming contract;
+- Go emits an explicit `banner_result` for each requested open port;
+- historical fragmented-argument or aggregate-output contracts must not be silently reintroduced.
+
+Any native process-interface change requires corresponding Rust, Go, Python bridge, and integration tests.
+
+## Result Contract
+
+The following behavioral guarantees must be preserved:
+
+- CLI and TUI consume `ScanOrchestrator`;
+- presentation code does not independently implement target parsing, resolution, concurrency, TCP scanning, banner collection, or report persistence;
+- single-target TUI sessions use the common orchestration path;
+- multi-target TUI sessions use the common batch orchestration path;
+- requested target and resolved endpoint identity remain distinguishable;
+- partial multi-target failures remain isolated and visible;
+- `safe`, `standard`, `deep`, and `custom` remain deterministic;
+- cancellation propagates to active Python workers and native subprocesses;
+- internal results preserve their canonical port state;
+- reportable results are derived from canonical state rather than an independent compatibility flag;
+- `is_open` remains a compatibility projection of canonical state;
+- TXT, JSON, CSV, and HTML use consistent reportability rules;
+- automatic reports do not silently overwrite existing reports;
+- TCP scanning does not send application payloads unless banner collection is explicitly enabled;
+- banner collection follows the common TLS, probing, sanitization, and output-length policies;
+- HTML output escapes untrusted target and service content;
+- CSV output neutralizes formula cells.
+
+Any change to these contracts requires tests in the same commit.
+
+## Multi-Target and Concurrency Guarantees
+
+Contributions affecting orchestration must preserve:
+
+- deterministic target expansion;
+- target deduplication;
+- explicit exclusions;
+- bounded target concurrency;
+- bounded port concurrency;
+- the global semantics of `--threads`;
+- endpoint identity;
+- partial-failure isolation;
+- cooperative cancellation;
+- reproducible reporting.
+
+Concurrency limits must not be silently multiplied per target.
+
+## Session and Artifact Guarantees
+
+Changes affecting persistence or artifacts must preserve the applicable security guarantees for:
+
+- Session Store v2;
+- resumable sessions;
+- immutable execution plans;
+- checkpoints;
+- migration behavior;
+- secure artifact creation;
+- restrictive filesystem permissions;
+- atomic replacement;
+- symlink rejection;
+- non-overwrite behavior;
+- output sanitization.
+
+Historical source data used for migration or audit must not be destructively modified without explicit authorization.
+
+## Required Validation
+
+Before committing a functional change, run the applicable local validation:
 
 ```bash
 ./scripts/build_all.sh
@@ -112,7 +223,33 @@ bash -n scripts/*.sh
 shellcheck scripts/*.sh
 ```
 
-Release-candidate changes additionally require:
+Python:
+
+```bash
+python -m pytest -v --cov=src --cov-report=term-missing
+```
+
+Rust:
+
+```bash
+cargo fmt --manifest-path rust-core/Cargo.toml -- --check
+
+cargo clippy \
+  --manifest-path rust-core/Cargo.toml \
+  --all-targets \
+  --all-features \
+  -- -D warnings
+
+cargo test --manifest-path rust-core/Cargo.toml
+```
+
+Go commands are executed from `go-banner/`:
+
+```bash
+go test -race ./...
+```
+
+Release-candidate or release-related changes additionally require the applicable release validation:
 
 ```bash
 python -m pip install -r requirements-release.txt
@@ -121,70 +258,120 @@ python -m pip install -r requirements-release.txt
 ./scripts/audit_dependencies.sh
 ```
 
-The full local validation must cover Python, Rust, Go, Bash, the bridges, the
-localhost parity test, and both single-target and multi-target TUI contracts. A
-commit must not be pushed while a required check is failing.
+A change must not be integrated while a required validation check is failing.
 
-The focused commands used by CI are:
+## Tests
 
-```bash
-python -m pytest -v --cov=src --cov-report=term-missing
-cargo fmt --manifest-path rust-core/Cargo.toml -- --check
-cargo clippy --manifest-path rust-core/Cargo.toml --all-targets --all-features -- -D warnings
-cargo test --manifest-path rust-core/Cargo.toml
-go test -race ./...
-bash -n scripts/*.sh
-shellcheck scripts/*.sh
-```
+Every behavior-changing defect correction should include an appropriate regression test.
 
-Run the Go commands from `go-banner/`.
+Changes to contracts, parsers, bridges, native engines, persistence, output formats, security controls, or orchestration should update the corresponding tests in the same commit.
 
-## Result contract
+Network tests should prefer deterministic loopback fixtures.
 
-- CLI and TUI must consume `ScanOrchestrator`; presentation code must not
-  implement target parsing, resolution, concurrency, network scanning, banner
-  capture, or report persistence.
-- Single-target TUI sessions must dispatch through `ScanOrchestrator.run()`;
-  multi-target TUI sessions must dispatch through `ScanOrchestrator.run_many()`.
-- Every multi-target event rendered by the TUI must preserve the requested
-  target and resolved address. Partial failures must remain isolated and visible.
-- `safe`, `standard`, `deep`, and `custom` must remain deterministic and
-  covered by tests.
-- Cancellation must propagate to Python workers and native subprocesses.
-- `PortScanner.results` contains one internal result for every requested port.
-- Internal results may be open, closed, or filtered.
-- Reportable results contain only entries where `state is PortState.OPEN`.
-- `is_open` remains serialized in contract v1 only as the exact compatibility
-  projection derived from `state`; runtime decisions must not treat it as an
-  independent source of truth.
-- TXT, JSON, CSV, and HTML must apply the same reportable filter.
-- Every CLI scan must display the complete ordered reportable result set.
-- Automatic reports must be stored under `reports/` unless the user selects
-  another report directory or supplies an explicit output path.
-- Automatic report names must never overwrite an existing report.
-- Internal Python fixtures and Rust must agree on open/closed states and
-  statistics for the same deterministic localhost fixture.
-- TCP scans must not send application payloads unless `--banner-grab` is set.
-- Internal Python banner fixtures and Go must use the same TLS, probe,
-  sanitization, and output-length policy.
-- HTML must escape target and service data; CSV must neutralize formula cells.
+Do not make CI depend on uncontrolled external infrastructure.
 
-Any change to this contract requires tests in the same commit.
+## Security-Sensitive Changes
 
-## Commits and pull requests
+Changes that affect any of the following require explicit review:
 
-- Start from an up-to-date `main`.
-- Keep each commit atomic and independently green.
-- Add a regression for every corrected defect.
-- Do not commit generated reports, binaries, build directories, environments,
-  caches, or credentials.
-- Describe the behavior before and after the change in the pull request.
-- Wait for the complete CI workflow to pass before merging.
+- network behavior;
+- target expansion;
+- protocol probing;
+- native process execution;
+- privilege requirements;
+- file permissions;
+- artifact paths;
+- session persistence;
+- secrets or credentials;
+- dependency or supply-chain controls;
+- release workflows;
+- output sanitization;
+- public contracts.
 
-Use clear commit messages such as:
+A contribution must not silently expand CicadaPort into vulnerability detection, exploitation, raw scanning, unrestricted discovery, destructive testing, or arbitrary offensive scripting.
+
+## Dependencies and Supply Chain
+
+Dependency changes must be deliberate and reviewable.
+
+Do not:
+
+- remove integrity controls without justification;
+- weaken pinned or hashed release dependencies without review;
+- replace pinned GitHub Actions with floating references;
+- bypass dependency auditing;
+- disable secret scanning or security analysis to make CI pass;
+- commit vendored binaries or generated artifacts without an approved reason.
+
+Release and supply-chain controls are part of the project's security boundary.
+
+## Commits
+
+Keep commits:
+
+- atomic;
+- focused;
+- reviewable;
+- reproducible;
+- appropriately tested.
+
+Do not commit:
+
+- generated scan reports;
+- build directories;
+- native build outputs;
+- virtual environments;
+- caches;
+- local credentials;
+- secrets;
+- access tokens;
+- recovery codes;
+- private evidence;
+- unrelated temporary files.
+
+Use clear Conventional Commit-style messages where practical.
+
+Examples:
 
 ```text
-fix(scanner): enforce canonical result contract
-test(integration): verify Python and Rust localhost parity
-docs(project): add security and contribution policies
+fix(scanner): preserve canonical result state
+test(integration): verify native localhost parity
+docs(security): align vulnerability reporting policy
+chore(governance): update repository ownership metadata
 ```
+
+## Pull Requests
+
+A pull request should explain:
+
+- the problem or requirement;
+- the behavior before the change;
+- the behavior after the change;
+- affected components;
+- security implications;
+- compatibility implications;
+- validation performed.
+
+Do not merge while required CI checks are failing.
+
+Keep unrelated implementation, documentation, release, and governance changes separate whenever practical.
+
+## Historical Provenance
+
+CicadaPort preserves historical authorship and engineering evidence.
+
+Organizational migration to Averlyth does not rewrite:
+
+- Git authorship;
+- signed commits;
+- signed tags;
+- release records;
+- historical contracts;
+- audit evidence;
+- engineering baselines.
+
+Older documentation may contain lifecycle states that were valid at the time of creation. Such evidence should remain historically accurate rather than being retroactively rewritten.
+
+## License
+
+By contributing, you agree that your contribution may be distributed under the project's [MIT License](LICENSE.md).

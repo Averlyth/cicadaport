@@ -89,11 +89,11 @@ def test_tokio_is_exact_and_no_git_dependency_is_introduced() -> None:
     )
 
     assert cargo.count("[dependencies]") == 1
-    assert 'tokio = { version = "=1.52.3"' in cargo
+    assert 'tokio = { version = "=1.53.1"' in cargo
     for feature in ["rt-multi-thread", "net", "time", "sync"]:
         assert f'"{feature}"' in cargo
     assert "async-std" not in cargo
     assert "git =" not in cargo
     assert "git+" not in lock
     assert lock.count('name = "tokio"') == 1
-    assert 'version = "1.52.3"' in lock
+    assert 'version = "1.53.1"' in lock

@@ -184,7 +184,7 @@ Clone the current organization repository:
 
 ```bash
 git clone https://github.com/Averlyth/cicadaport.git
-cd port-scanner
+cd cicadaport
 ```
 
 Create an isolated Python environment:
@@ -770,4 +770,4 @@ CicadaPort is maintained as part of the **Obscuryx Security Platform**.
 
 Organization: [github.com/Averlyth](https://github.com/Averlyth)
 
-Repository: [github.com/Averlyth/port-scanner](https://github.com/Averlyth/cicadaport)
+Repository: [github.com/Averlyth/cicadaport](https://github.com/Averlyth/cicadaport)

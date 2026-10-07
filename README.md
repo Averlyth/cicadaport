@@ -226,7 +226,7 @@ la interfaz pública.
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/DrewSC13/port-scanner.git
+git clone https://github.com/Averlyth/port-scanner.git
 cd port-scanner
 
 # Crear un entorno virtual e instalar la aplicación

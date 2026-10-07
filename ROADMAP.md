@@ -67,14 +67,15 @@ probada.
 | `DT-02` | Invocación nativa histórica mediante `--host`, `--ports` y variantes heredadas. | El contrato `CINV-CICADAPORT-3.2.9-001` aprobó retirar las rutas históricas y consolidar `--request-stdin` como única interfaz operativa; `--help` permanece como operación informativa. | Implementación en el Subhito 3.2.9; el cierre exige códigos `0/1/2`, rechazo previo a `stdin` y red, CI verde y la etiqueta firmada `subhito-3.2.9`. |
 | `DT-03` | Implementaciones Python de escaneo y banners. | Decisión aprobada en `CCR-CICADAPORT-3.2.10-001`: `ScanResult` y el ciclo externo permanecen como núcleo; TCP, UDP y banners Python se conservan como referencia interna, pruebas y paridad. | Implementar sin selección pública, fallback, deprecación ni retirada en `2.2.0`. |
 | `DT-04` | Proyección temporal `is_open`. | Decisión aprobada en `CCR-CICADAPORT-3.2.10-001`: permanece el contrato v1; `state` es la fuente de verdad e `is_open` su proyección derivada. | Centralizar invariantes, migrar consumidores internos a `state` y preservar el campo persistido. |
-| `DT-05` | Versionado de aplicación y estado de release. | Decisión aprobada en `CRC-CICADAPORT-3.2.11-001`: SemVer, `3.0.0rc1`/`3.0.0-rc.1`, fuente única y changelog. | Implementar y validar sin publicar todavía la prerelease. |
-| `DT-06` | Matriz de plataformas declarada. | Decisión aprobada en `CRC-CICADAPORT-3.2.11-001`: Linux x86_64, Ubuntu 22.04/24.04, Python 3.10-3.13, Rust 1.97.1 y Go 1.26.5. | Windows, macOS, ARM64 y Python 3.14 quedan no soportados en RC1. |
+| `DT-05` | Versionado de aplicación y estado de release. | RC1 fue publicada como `v3.0.0-rc.1` el 2026-07-26. La fuente actual declara `3.0.0rc2` / `3.0.0-rc.2`; RC2 permanece sin publicar. | La creación de `v3.0.0-rc.2` y su publicación requieren autorización formal separada. |
+| `DT-06` | Matriz de plataformas declarada. | La línea actual mantiene Linux x86_64, Ubuntu 22.04/24.04, Python 3.10-3.13 y Rust 1.97.1; el baseline de Go vigente es 1.26.8. RC1 conserva históricamente Go 1.26.5. | Windows, macOS, ARM64 y Python 3.14 permanecen no soportados hasta una validación formal separada. |
 
-## Secuencia restante del Hito 3
+## Registro histórico de ejecución del Hito 3
 
-Los subhitos se ejecutan de forma estrictamente secuencial. Cada sección declara
-su base, contrato y estado verificable; ningún subhito dependiente puede comenzar
-antes del cierre firmado del anterior.
+Los subhitos fueron definidos para ejecutarse de forma estrictamente secuencial.
+Las condiciones redactadas en tiempo futuro se conservan como trazabilidad del
+plan autorizado; los estados finales registrados en los subhitos posteriores
+prevalecen para determinar el resultado efectivo del Hito 3.
 
 ### Subhito 3.2.8 — Consolidación de la interfaz pública especializada
 
@@ -264,15 +265,20 @@ PROPOSED_RELEASE=3.0.0-rc.2
 PHASE_F=BLOCKED_NOT_AUTHORIZED
 ```
 
-SUBTASKS 5.1–5.5 consolidaron arquitectura y baselines empresariales, Session
-Store v2 y artefactos seguros, Rust TCP Engine v2, Go Service Evidence Engine
-v2 y endurecimiento de supply chain. SUBTASK 5.6 valida integralmente esa
-convergencia y prepara RC2 sin publicación.
+El bloque anterior se conserva como **snapshot histórico previo a la Fase F**.
+No representa el estado operativo actual del repositorio.
 
-La aceptación se limita a loopback y debe demostrar contratos públicos v1,
-`service_evidence` v2, instalación aislada, reproducibilidad, presupuestos de
-recursos, SBOM, provenance, firmas y CI completo. `main`, etiquetas y
-publicación permanecen bloqueados hasta la fase F.
+TASK 5 fue integrada en `main` mediante la PR #8 el 2026-08-01, con merge commit
+verificado `30ac1780239abe9a63d6a6dd47f101398b7bb33f` y source head
+`f7e9719b7706faece01908b480dbddd34491f2b4`. En consecuencia, las declaraciones
+`TASK_5=IN_IMPLEMENTATION`, `SUBTASK_5_6=OPEN_AUTHORIZED_IN_MATERIAL_IMPLEMENTATION`
+y `PHASE_F=BLOCKED_NOT_AUTHORIZED` se preservan exclusivamente como evidencia del
+estado previo a esa integración y no deben interpretarse como estado vigente.
+
+La versión fuente actual permanece en `3.0.0-rc.2` (`3.0.0rc2` en Python).
+No existe todavía una publicación `v3.0.0-rc.2`; su etiquetado y publicación
+requieren un gate formal separado. El baseline actual de Go es 1.26.8, sin
+reescribir las referencias históricas de RC1 que fueron validadas con Go 1.26.5.
 
 ## Gobierno vigente
 

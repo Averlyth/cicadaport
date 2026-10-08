@@ -669,3 +669,42 @@ of `wheel convert` in the inspected paths. That search does not establish
 absence of indirect calls or eliminate the need for package verification.
 Dependabot PRs #32–#36 remain open until each is resolved independently;
 no original bot PR has been merged as part of this uncommitted reconciliation.
+
+## Stage L — current evidence after signed dependency reconciliation (2026-10-08)
+
+This is an **additive, post-Stage-G snapshot**. Historical Stage G `NOT_CREATED`,
+`NOT_RUN` and other pending values above remain valid for their evidence cut-off.
+They must not be interpreted as the current status of the repository.
+
+```text
+STAGE_L=DOCUMENTATION_PREPARATION_UNCOMMITTED
+POST_BASELINE_DEPENDENCY_COMMIT=c0a1ace88cea37a4ad59303ff9d40c54b49b4788
+POST_BASELINE_DEPENDENCY_PARENT=c27d13a0e7643f1ee6cc6fd4a20e3dce14643176
+POST_BASELINE_DEPENDENCY_TREE=ed00bebc0ca4897f127a2e21ea7d1bcf681bbeaf
+POST_BASELINE_DEPENDENCY_SIGNATURE=GITHUB_VERIFIED_VALID_SSH
+POST_BASELINE_DEPENDENCY_RELEASE_LOCK_SHA256=c1daa8a206b5835db96b7188629f1e3f95405bd93f44f0c744bce60310035cc8
+POST_BASELINE_RELEASE_LOCK_VERSION_CHANGES=22
+STAGE_I_LOCAL_REPRODUCIBILITY=PASS_7_FILES
+STAGE_I_LOCAL_WHEEL_SDIST_INSTALL_SMOKE=PASS
+STAGE_I_LOCAL_SBOM_MANIFEST_HASHES=PASS
+STAGE_I_EXACT_COMMIT_BINDING=PASS
+STAGE_J_RECONCILIATION_PUSH_CI=37822525656_PASS_28_OF_28
+STAGE_K_PERMANENT_BRANCH_FAST_FORWARD=PASS
+STAGE_K_PERMANENT_PUSH_CI=37823691270_PASS_28_OF_28
+STAGE_K_PERMANENT_REMOTE_HEAD=c0a1ace88cea37a4ad59303ff9d40c54b49b4788
+STAGE_K_SECURITY_SOURCE_REMOTE_HEAD=c0a1ace88cea37a4ad59303ff9d40c54b49b4788
+MAIN_LAST_VERIFIED=c27d13a0e7643f1ee6cc6fd4a20e3dce14643176
+DEPENDABOT_PRS_32_TO_36=OPEN_NOT_MERGED_NOT_CLOSED
+SUBTASK_8_7=SOURCE_TECHNICAL_GATES_PASS_FINAL_ACCEPTANCE_PENDING
+SUBTASK_8_8=BLOCKED_NO_FORMAL_GO_NO_GO
+SUBTASK_8_9=BLOCKED_NO_PUBLICATION
+RC3_TAG=NOT_CREATED
+RC3_PUBLICATION=NOT_AUTHORIZED
+STABLE_PUBLICATION=NOT_AUTHORIZED
+```
+
+The post-baseline dependency commit is **not integrated in `main`**. The two
+successful branch `push` workflows are not substitutes for future pull-request
+checks, a protected merge, exact `main` post-merge CI, and a final human decision.
+The proposed second consolidated PR must not record stable GO before the backlog,
+release acceptance and post-merge gates are actually satisfied.

@@ -55,3 +55,24 @@ Full local gates and Python/Rust/Go vulnerability scanners passed, with
 wheel/sdist build, reproducibility, artifact installation and CI attestation
 gates must be repeated. No published artifacts should be inferred from
 this preparatory candidate.
+
+## Stage L — post-commit candidate validation (2026-10-08)
+
+The Stage G observations above describe a precommit snapshot. The proposed
+security dependency reconciliations were subsequently committed, signed and
+validated as `c0a1ace88cea37a4ad59303ff9d40c54b49b4788` (tree
+`ed00bebc0ca4897f127a2e21ea7d1bcf681bbeaf`). The release lock retains
+SHA-256 `c1daa8a206b5835db96b7188629f1e3f95405bd93f44f0c744bce60310035cc8`.
+
+The local exact-commit release build passed reproducibility, signed-source
+identity checks, installed wheel/sdist smoke tests, hash verification, manifest
+and CycloneDX inventory verification. Both branch `push` runs, `37822525656`
+and `37823691270`, passed all 28 jobs including OIDC-backed attestation build
+and artifact provenance verification. The permanent branch was advanced by
+fast-forward, without rebase, history rewrite or a merge to `main`.
+
+**Release barrier:** this candidate is not a published GitHub Release, and its
+dependency changes are not yet integrated into `main`. No RC3 tag or artifact
+publication is authorized. A future documentation commit or other change
+creates a *new* source SHA and requires its own relevant quality, release and
+remote acceptance evidence before any protected merge or release decision.

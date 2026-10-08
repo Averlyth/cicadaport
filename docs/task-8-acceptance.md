@@ -86,3 +86,40 @@ STABLE_PUBLICATION=NOT_AUTHORIZED
 The PR37 source-level checklist is complete except the independent
 publication and final stable security/operational review decisions above.
 Those decisions must not be inferred from local Stage D–F results.
+
+## Stage L — later evidence and unresolved acceptance gates (2026-10-08)
+
+This addendum supersedes Stage G **only as a current snapshot**; it does not
+rewrite or invalidate that historical precommit evidence.
+
+- Signed dependency commit: `c0a1ace88cea37a4ad59303ff9d40c54b49b4788`;
+  GitHub verifies its SSH signature (`verified=true`, `reason=valid`).
+- Local Stage I: reproducible release artifact set (7 compared files), clean
+  wheel/sdist installation and smoke tests outside the checkout, checked hashes,
+  CycloneDX SBOM, release manifest and exact committed-tree identity.
+- Reconciliation branch `push` CI: [37822525656](https://github.com/Averlyth/cicadaport/actions/runs/37822525656),
+  28/28 jobs successful on the exact signed commit.
+- Permanent productization branch `push` CI:
+  [37823691270](https://github.com/Averlyth/cicadaport/actions/runs/37823691270),
+  28/28 jobs successful on the same SHA. The attestation-build and verification
+  jobs succeeded in both workflows.
+- The CI contract executes 10 separate iterations of the synthetic
+  TASK 6.5 resilience test. This is not evidence of a production-length soak.
+- Dependabot PRs #32, #33, #34, #35 and #36 remain open, pending independent
+  superseded-resolution **after** the equivalent updates enter `main`.
+
+**Acceptance boundary:** the source candidate's technical gates have passed on
+signed branch pushes. However, the new dependency source is not merged to
+`main`, PR-level checks for the future consolidated PR have not run, and no
+post-merge CI attests to this updated `main` state. Final closure of SUBTASK 8.7,
+independent RC3 publication, and SUBTASK 8.8 stable GO/NO-GO remain pending.
+
+```text
+STAGE_L_DEPENDENCY_RECONCILIATION=TECHNICALLY_VALIDATED_ON_BRANCH
+STAGE_L_FINAL_8_7_ACCEPTANCE=PENDING_FORMAL_DECISION_AND_INTEGRATION
+STAGE_L_SECOND_PR=PREPARATION_ONLY_NOT_CREATED
+STAGE_L_DEPENDABOT_SUPERSESSION=PENDING_MAIN_INTEGRATION
+STAGE_L_RC3_TAG_AND_PUBLICATION=NOT_AUTHORIZED
+STAGE_L_STABLE_GO_NO_GO=NOT_EXECUTED
+STAGE_L_STABLE_PUBLICATION=NOT_AUTHORIZED
+```

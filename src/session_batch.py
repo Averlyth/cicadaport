@@ -11,10 +11,10 @@ from __future__ import annotations
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 import threading
-from typing import Any, Callable, Mapping, Optional, Protocol
+from typing import Any, Callable, Mapping
 from uuid import uuid4
 
-from src.contracts import NativeBannerResult, PortState, TargetIdentity
+from src.contracts import NativeBannerResult, TargetIdentity
 from src.errors import ScanCancelledError
 from src.scanner import ScanResult
 from src.session import (
@@ -30,7 +30,6 @@ from src.session_runtime import (
     NativeSingleTargetExecutor,
     SessionCheckpointCompatibilityError,
     SessionCheckpointIntegrityError,
-    SessionCheckpointNotFoundError,
     SessionExecutionError,
     SessionPersistenceError,
     SingleTargetCheckpointStore,
@@ -42,7 +41,6 @@ from src.session_runtime import (
     _sha256_bytes,
     _utc_now,
 )
-
 
 EndpointKey = tuple[str, str, str]
 BatchUpdateCallback = Callable[["BatchSessionUpdate"], None]
@@ -69,7 +67,9 @@ class BatchSessionUpdate:
 
     @property
     def completed_ports(self) -> int:
-        return sum(len(endpoint.completed_results) for endpoint in self.checkpoint.endpoints)
+        return sum(
+            len(endpoint.completed_results) for endpoint in self.checkpoint.endpoints
+        )
 
     @property
     def total_ports(self) -> int:
@@ -187,9 +187,7 @@ class MultiTargetCheckpointStore(SingleTargetCheckpointStore):
                 checkpoint = SessionCheckpoint.from_json(
                     checkpoint_bytes.decode("utf-8")
                 )
-                manifest = SessionManifest.from_json(
-                    manifest_bytes.decode("utf-8")
-                )
+                manifest = SessionManifest.from_json(manifest_bytes.decode("utf-8"))
             except UnicodeDecodeError as error:
                 raise SessionCheckpointIntegrityError(
                     "Una generación no es UTF-8 válido."
@@ -415,9 +413,7 @@ class MultiTargetSessionRunner:
                 last_error="cancelled_by_user",
             )
             self._persist(cancelled_checkpoint, kind="session_cancelled")
-            raise ScanCancelledError(
-                "Sesión multiobjetivo cancelada por el usuario."
-            )
+            raise ScanCancelledError("Sesión multiobjetivo cancelada por el usuario.")
 
         return self._finalize_from_current()
 
@@ -862,9 +858,7 @@ class MultiTargetSessionRunner:
                 else:
                     updated_endpoints.append(endpoint)
             if not found:
-                raise SessionExecutionError(
-                    "El endpoint no pertenece al checkpoint."
-                )
+                raise SessionExecutionError("El endpoint no pertenece al checkpoint.")
             updated = SessionCheckpoint(
                 session_id=latest.session_id,
                 plan=latest.plan,
@@ -979,6 +973,4 @@ class MultiTargetSessionRunner:
         cancel_event: threading.Event,
     ) -> None:
         if cancel_event.is_set():
-            raise ScanCancelledError(
-                "Sesión multiobjetivo cancelada por el usuario."
-            )
+            raise ScanCancelledError("Sesión multiobjetivo cancelada por el usuario.")

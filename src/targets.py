@@ -13,7 +13,6 @@ from typing import Iterable, Iterator, List, Sequence
 
 from src.contracts import AddressFamily, ReasonCode, TargetIdentity
 
-
 DEFAULT_TARGET_EXPANSION_LIMIT = 4096
 
 _HOSTNAME_PATTERN = re.compile(
@@ -110,8 +109,7 @@ class TargetParser:
     def _ensure_capacity(self, current: int, additional: int) -> None:
         if additional > self.max_targets - current:
             raise TargetExpansionLimitError(
-                "La expansión supera el límite de "
-                f"{self.max_targets} objetivos."
+                "La expansión supera el límite de " f"{self.max_targets} objetivos."
             )
 
     def _expand_specification(self, specification: str) -> List[tuple[str, TargetKind]]:
@@ -123,9 +121,7 @@ class TargetParser:
             try:
                 network = ipaddress.ip_network(value, strict=False)
             except ValueError as error:
-                raise TargetParseError(
-                    f"CIDR no válido: {specification!r}."
-                ) from error
+                raise TargetParseError(f"CIDR no válido: {specification!r}.") from error
             self._ensure_capacity(0, network.num_addresses)
             kind = TargetKind.IPV4 if network.version == 4 else TargetKind.IPV6
             return [(str(address), kind) for address in network]
@@ -214,24 +210,17 @@ class TargetParser:
     ) -> List[ParsedTarget]:
         """Expande argumentos y archivos; luego deduplica y aplica exclusiones."""
         argument_values = [
-            (token, "argument")
-            for token in self._normalize_input(specifications)
+            (token, "argument") for token in self._normalize_input(specifications)
         ]
         source_values = chain(
             argument_values,
-            *(
-                self._read_target_file(target_file)
-                for target_file in target_files
-            ),
+            *(self._read_target_file(target_file) for target_file in target_files),
         )
 
         excluded = {
-            target.value.lower()
-            if target.kind is TargetKind.HOSTNAME
-            else target.value
+            target.value.lower() if target.kind is TargetKind.HOSTNAME else target.value
             for target in self._expand_values(
-                (token, "exclusion")
-                for token in self._normalize_input(exclusions)
+                (token, "exclusion") for token in self._normalize_input(exclusions)
             )
         }
 
@@ -303,15 +292,13 @@ class TargetResolver:
                 f"No se pudo resolver el objetivo {value!r}: {error}.",
             ) from error
 
-        identities = {}
+        identities: dict[tuple[AddressFamily, str], TargetIdentity] = {}
         for family, _socktype, _protocol, canonical_name, sockaddr in records:
             if family not in {socket.AF_INET, socket.AF_INET6}:
                 continue
             address = str(ipaddress.ip_address(sockaddr[0]))
             address_family = (
-                AddressFamily.IPV4
-                if family == socket.AF_INET
-                else AddressFamily.IPV6
+                AddressFamily.IPV4 if family == socket.AF_INET else AddressFamily.IPV6
             )
             identities.setdefault(
                 (address_family, address),

@@ -29,7 +29,10 @@ def test_evidence_writer_uses_private_modes(tmp_path: Path) -> None:
     payload = {
         "generated_at": "2026-01-01T00:00:00Z",
         "measurements": {
-            "rust": {"metadata": {"records_per_second": 1.0}, "peaks": {"peak_rss_kib": 1, "peak_fds": 1, "peak_threads": 1}},
+            "rust": {
+                "metadata": {"records_per_second": 1.0},
+                "peaks": {"peak_rss_kib": 1, "peak_fds": 1, "peak_threads": 1},
+            },
             "rust_termination": {"termination_seconds": 0.1},
             "go": {"peaks": {"peak_rss_kib": 1, "peak_fds": 1}},
             "go_first_result": {"first_result_seconds": 0.1, "total_seconds": 0.2},
@@ -45,7 +48,7 @@ def test_evidence_writer_uses_private_modes(tmp_path: Path) -> None:
 
 def test_first_jsonl_chunk_preserves_prefetched_records() -> None:
     payload = b"".join(
-        (b'{"record":' + str(index).encode() + b'}\n') for index in range(8)
+        (b'{"record":' + str(index).encode() + b"}\n") for index in range(8)
     )
     process = subprocess.Popen(
         [

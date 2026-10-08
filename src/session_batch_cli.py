@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 import datetime
 from pathlib import Path
 import threading
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Callable, Sequence, cast
 from uuid import uuid4
 
 from src.contracts import PortState, TargetIdentity
@@ -19,13 +19,13 @@ from src.orchestrator import (
     ScanFailure,
     ScanOrchestrator,
     ScanOutcome,
-    ScanRequest,
 )
 from src.presentation import ConsolePresenter
 from src.scanner import ScanResult
-from src.session import ScanPlan, SessionCheckpoint, SessionStatus
+from src.session import EndpointProgress, ScanPlan, SessionCheckpoint, SessionStatus
 from src.session_batch import (
     BatchSessionUpdate,
+    MultiTargetCheckpointStore,
     ExecutorFactory,
     MultiTargetSessionRunner,
 )
@@ -43,7 +43,6 @@ from src.session_cli import (
 )
 from src.session_runtime import SessionPersistenceError
 from src.targets import TargetParseError, TargetResolutionError, TargetResolver
-
 
 _REPORT_FORMAT_FROM_PLAN = {
     "txt": "text",
@@ -72,8 +71,7 @@ class PreparedBatchSession:
     @property
     def is_batch(self) -> bool:
         return (
-            len(self.plan.requested_targets) > 1
-            or len(self.plan.resolved_targets) > 1
+            len(self.plan.requested_targets) > 1 or len(self.plan.resolved_targets) > 1
         )
 
 
@@ -239,9 +237,7 @@ def _validate_batch_combination(
     if resume and print_plan:
         raise SessionCLIUsageError("--resume no admite --print-plan.")
     if print_plan and session_dir:
-        raise SessionCLIUsageError(
-            "--print-plan no crea ni consume un --session-dir."
-        )
+        raise SessionCLIUsageError("--print-plan no crea ni consume un --session-dir.")
     if print_plan and events_jsonl:
         raise SessionCLIUsageError("--print-plan no admite --events-jsonl.")
     if print_plan and tui:
@@ -291,9 +287,7 @@ def build_batch_scan_plan(
     except TargetParseError as error:
         raise SessionCLIUsageError(str(error)) from error
     if not parsed_targets:
-        raise SessionCLIUsageError(
-            "Las exclusiones eliminaron todos los objetivos."
-        )
+        raise SessionCLIUsageError("Las exclusiones eliminaron todos los objetivos.")
 
     resolver = TargetResolver()
     requested_targets: list[str] = []
@@ -327,9 +321,7 @@ def build_batch_scan_plan(
             + "; ".join(resolution_errors)
         )
     if not identities:
-        raise SessionCLIUsageError(
-            "Ningún objetivo produjo endpoints IPv4/IPv6."
-        )
+        raise SessionCLIUsageError("Ningún objetivo produjo endpoints IPv4/IPv6.")
 
     target_workers = min(
         int(args.target_workers),
@@ -346,9 +338,7 @@ def build_batch_scan_plan(
         target_workers=target_workers,
         banner_grab=bool(args.banner_grab),
         tcp_engine=MANDATORY_SCAN_ENGINE,
-        banner_engine=(
-            MANDATORY_BANNER_ENGINE if args.banner_grab else None
-        ),
+        banner_engine=(MANDATORY_BANNER_ENGINE if args.banner_grab else None),
         report_format={
             "text": "txt",
             "json": "json",
@@ -393,10 +383,7 @@ def session_requires_batch(
             or len(checkpoint.plan.resolved_targets) > 1
         )
     plan = build_batch_scan_plan(cli, args, raw_argv)
-    return (
-        len(plan.requested_targets) > 1
-        or len(plan.resolved_targets) > 1
-    )
+    return len(plan.requested_targets) > 1 or len(plan.resolved_targets) > 1
 
 
 def prepare_batch_session(
@@ -439,9 +426,7 @@ def prepare_batch_session(
                 "--session-dir debe ser un directorio regular."
             )
         if any(session_dir.iterdir()):
-            raise SessionPersistenceError(
-                "--session-dir debe ser nuevo o estar vacío."
-            )
+            raise SessionPersistenceError("--session-dir debe ser nuevo o estar vacío.")
     return PreparedBatchSession(
         plan=plan,
         session_dir=session_dir,
@@ -470,11 +455,7 @@ def _result_statistics(results: list[ScanResult]) -> dict[str, Any]:
             PortState.CLOSED_FILTERED,
         }
     )
-    average = (
-        sum(result.response_time for result in results) / total
-        if total
-        else 0.0
-    )
+    average = sum(result.response_time for result in results) / total if total else 0.0
     return {
         "total_ports": total,
         "open_ports": open_ports,
@@ -524,9 +505,7 @@ def render_batch_checkpoint(
             output_path = base
             suffix = 2
             while output_path in reserved or output_path.exists():
-                output_path = base.with_name(
-                    f"{base.stem}_{suffix}{base.suffix}"
-                )
+                output_path = base.with_name(f"{base.stem}_{suffix}{base.suffix}")
                 suffix += 1
             reserved.add(output_path)
 
@@ -578,11 +557,7 @@ def render_batch_checkpoint(
         1,
         plan.threads // effective_target_workers,
     )
-    all_results = [
-        result
-        for outcome in outcomes
-        for result in outcome.results
-    ]
+    all_results = [result for outcome in outcomes for result in outcome.results]
     aggregate = _result_statistics(all_results)
     statistics = {
         "requested_targets": len(plan.requested_targets),
@@ -630,13 +605,19 @@ def run_prepared_batch_session(
 
     factory = executor_factory
     if factory is None:
-        factory = lambda identity: ObservableNativeSingleTargetExecutor(
-            emitter=projector.native_emitter(identity)
-        )
+
+        def default_factory(
+            identity: TargetIdentity,
+        ) -> ObservableNativeSingleTargetExecutor:
+            return ObservableNativeSingleTargetExecutor(
+                emitter=projector.native_emitter(identity)
+            )
+
+        factory = default_factory
 
     store = SessionStoreV2.multi_target(prepared.session_dir)
     runner = MultiTargetSessionRunner(
-        store,
+        cast(MultiTargetCheckpointStore, store),
         factory,
         event_callback=combined_update,
     )
@@ -646,9 +627,7 @@ def run_prepared_batch_session(
             projector.emit_lifecycle(
                 "session_resumed",
                 current,
-                detail=(
-                    f"scope=batch;endpoint_count={len(current.endpoints)}"
-                ),
+                detail=(f"scope=batch;endpoint_count={len(current.endpoints)}"),
             )
             checkpoint = runner.resume(
                 expected_plan=prepared.plan,
@@ -660,15 +639,13 @@ def run_prepared_batch_session(
                 plan=prepared.plan,
                 status=SessionStatus.CREATED,
                 endpoints=tuple(
-                    {
-                        "contract_version": 1,
-                        "record_type": "endpoint_progress",
-                        "identity": identity.to_contract_dict(),
-                        "completed_results": [],
-                        "pending_ports": list(prepared.plan.ports),
-                        "completed_banner_ports": [],
-                        "error": None,
-                    }
+                    EndpointProgress(
+                        identity=identity,
+                        completed_results=(),
+                        pending_ports=prepared.plan.ports,
+                        completed_banner_ports=(),
+                        error=None,
+                    )
                     for identity in prepared.plan.resolved_targets
                 ),
                 created_at=_utc_now(),
@@ -679,9 +656,7 @@ def run_prepared_batch_session(
             projector.emit_lifecycle(
                 "session_started",
                 synthetic,
-                detail=(
-                    f"scope=batch;endpoint_count={len(synthetic.endpoints)}"
-                ),
+                detail=(f"scope=batch;endpoint_count={len(synthetic.endpoints)}"),
             )
             checkpoint = runner.run(
                 prepared.plan,

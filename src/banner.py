@@ -69,12 +69,7 @@ class BannerGrabber:
         else:
             text = str(raw)
 
-        cleaned = (
-            text.replace("\x00", "")
-            .replace("\r", " ")
-            .replace("\n", " ")
-            .strip()
-        )
+        cleaned = text.replace("\x00", "").replace("\r", " ").replace("\n", " ").strip()
         cleaned = cleaned[: config.MAX_BANNER_OUTPUT_LENGTH]
         return cleaned or None
 

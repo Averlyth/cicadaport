@@ -8,7 +8,6 @@ import tempfile
 
 import pytest
 
-
 REPO = Path(__file__).resolve().parents[1]
 MODULE_PATH = REPO / "benchmarks" / "task_6_1_operational_baseline.py"
 SPEC = importlib.util.spec_from_file_location("task_6_1_baseline", MODULE_PATH)
@@ -86,9 +85,7 @@ def test_evidence_writer_uses_private_modes_and_stable_hashes() -> None:
         assert "SHA256SUMS" not in manifest
 
         loaded = json.loads(
-            (output / "task-6-1-operational-baseline.json").read_text(
-                encoding="utf-8"
-            )
+            (output / "task-6-1-operational-baseline.json").read_text(encoding="utf-8")
         )
         assert loaded["contract"] == MODULE.CONTRACT
 
@@ -113,10 +110,10 @@ def test_runner_is_post_commit_reproducible() -> None:
     assert 'git diff --name-only "$AUTHORIZED_BASE...HEAD"' in source
     assert 'git merge-base --is-ancestor "$AUTHORIZED_BASE" HEAD' in source
     assert "sed -n 's/^?? //p'" not in source
-    assert 'EXPECTED_HEAD=' not in source
-    assert 'EXPECTED_TREE=' not in source
-    assert 'FINAL_STATUS=PASS_OPERATIONAL_BASELINE_POST_COMMIT' in source
-    assert 'FINAL_STATUS=PASS_FIRST_BLOCK_PENDING_SIGNED_COMMIT' not in source
+    assert "EXPECTED_HEAD=" not in source
+    assert "EXPECTED_TREE=" not in source
+    assert "FINAL_STATUS=PASS_OPERATIONAL_BASELINE_POST_COMMIT" in source
+    assert "FINAL_STATUS=PASS_FIRST_BLOCK_PENDING_SIGNED_COMMIT" not in source
 
     create_log = source.index(': >"$LOG_PATH"')
     chmod_log = source.index('chmod 600 "$LOG_PATH"')

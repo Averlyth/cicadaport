@@ -73,9 +73,7 @@ def test_contract_v1_and_async_resource_limits_remain_explicit() -> None:
     assert "run_writer" in output_source
     assert "receiver.blocking_recv()" in output_source
 
-    cargo = (REPOSITORY_ROOT / "rust-core" / "Cargo.toml").read_text(
-        encoding="utf-8"
-    )
+    cargo = (REPOSITORY_ROOT / "rust-core" / "Cargo.toml").read_text(encoding="utf-8")
     assert 'tokio = { version = "=1.53.1"' in cargo
     assert "rt-multi-thread" in cargo
     assert "net" in cargo

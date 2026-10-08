@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 import os
 from pathlib import Path
 import threading
-from typing import Any, Callable, Mapping, Optional, Sequence
+from typing import Any, Callable, Mapping, Optional, Sequence, cast
 from uuid import uuid4
 
 from src.contracts import NativeBannerResult, TargetIdentity
@@ -25,6 +25,7 @@ from src.scanner import ScanResult
 from src.session import ScanPlan, SessionCheckpoint, deterministic_json
 from src.session_runtime import (
     SessionPersistenceError,
+    SingleTargetCheckpointStore,
     SingleTargetSessionRunner,
     _require_single_target_plan,
 )
@@ -35,7 +36,6 @@ from src.secure_artifacts import (
     SecureArtifactWriter,
 )
 from src.targets import TargetParseError, TargetResolutionError, TargetResolver
-
 
 PUBLIC_SESSION_EVENT_VERSION = 1
 PUBLIC_SESSION_EVENT_FIELDS = frozenset(
@@ -285,11 +285,7 @@ class SessionEventEmitter:
             source=str(payload["engine"]),
             status=str(payload["status"]),
             completed=int(payload["completed"]),
-            port=(
-                None
-                if payload.get("port") is None
-                else int(payload["port"])
-            ),
+            port=(None if payload.get("port") is None else int(payload["port"])),
             protocol="tcp",
             engine=str(payload["engine"]),
             detail=(
@@ -479,13 +475,9 @@ def _validate_session_combination(
             "Las opciones de sesión monoobjetivo no admiten --tui."
         )
     if print_plan and session_dir:
-        raise SessionCLIUsageError(
-            "--print-plan no crea ni consume un --session-dir."
-        )
+        raise SessionCLIUsageError("--print-plan no crea ni consume un --session-dir.")
     if print_plan and events_jsonl:
-        raise SessionCLIUsageError(
-            "--print-plan no admite --events-jsonl."
-        )
+        raise SessionCLIUsageError("--print-plan no admite --events-jsonl.")
     if events_jsonl and not (session_dir or resume):
         raise SessionCLIUsageError(
             "--events-jsonl requiere creación o reanudación de sesión."
@@ -535,9 +527,7 @@ def build_scan_plan(cli: Any, args: Any, raw_argv: Sequence[str]) -> ScanPlan:
             "La sesión pública no admite el contrato multiobjetivo."
         )
     if _explicit_option(raw_argv, "--target-workers") and args.target_workers != 1:
-        raise SessionCLIUsageError(
-            "La sesión pública requiere --target-workers 1."
-        )
+        raise SessionCLIUsageError("La sesión pública requiere --target-workers 1.")
 
     try:
         identities = TargetResolver().resolve(parsed_targets[0])
@@ -559,9 +549,7 @@ def build_scan_plan(cli: Any, args: Any, raw_argv: Sequence[str]) -> ScanPlan:
         target_workers=1,
         banner_grab=bool(args.banner_grab),
         tcp_engine=MANDATORY_SCAN_ENGINE,
-        banner_engine=(
-            MANDATORY_BANNER_ENGINE if args.banner_grab else None
-        ),
+        banner_engine=(MANDATORY_BANNER_ENGINE if args.banner_grab else None),
         report_format={
             "text": "txt",
             "json": "json",
@@ -597,9 +585,7 @@ def _render_completed_session(cli: Any, checkpoint: SessionCheckpoint) -> None:
         output_file=str(output_path),
         report_format=report_format,
         scan_engine=plan.tcp_engine,
-        banner_engine=(
-            plan.banner_engine or DISABLED_BANNER_ENGINE
-        ),
+        banner_engine=(plan.banner_engine or DISABLED_BANNER_ENGINE),
     )
     cli._display_results(
         results,
@@ -678,7 +664,9 @@ def execute_session_cli(
         runtime_executor = executor or ObservableNativeSingleTargetExecutor(
             emitter=emitter
         )
-        runner = SingleTargetSessionRunner(store, runtime_executor)
+        runner = SingleTargetSessionRunner(
+            cast(SingleTargetCheckpointStore, store), runtime_executor
+        )
 
         if is_resume:
             assert current is not None

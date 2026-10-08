@@ -99,17 +99,13 @@ class TestCicadaPortTui(unittest.IsolatedAsyncioTestCase):
                 app.query_one("#metric-rate").styles.background.ansi,
                 -1,
             )
-            self.assertTrue(
-                app.query_one("#findings").styles.background.is_transparent
-            )
+            self.assertTrue(app.query_one("#findings").styles.background.is_transparent)
 
     async def test_runtime_refresh_is_safe_after_dashboard_unmount(self):
         app = CicadaPortApp(build_request(), auto_start=False)
 
         async with app.run_test(size=(130, 42)):
-            self.assertIsNotNone(
-                app.query_one_optional("#topbar")
-            )
+            self.assertIsNotNone(app.query_one_optional("#topbar"))
 
         app._refresh_runtime()
 

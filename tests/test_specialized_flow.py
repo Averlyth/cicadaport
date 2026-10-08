@@ -179,9 +179,7 @@ class TestSpecializedPreflight(unittest.TestCase):
 
         def complete_scan(scanner, _host_ip, _request):
             scanner.start_external_scan()
-            return scanner.finish_external_scan(
-                [ScanResult(port=45001, is_open=False)]
-            )
+            return scanner.finish_external_scan([ScanResult(port=45001, is_open=False)])
 
         with tempfile.TemporaryDirectory() as temp_dir:
             orchestrator = ScanOrchestrator(scan_rust=complete_scan)

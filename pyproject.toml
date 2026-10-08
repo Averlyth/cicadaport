@@ -47,3 +47,7 @@ include = ["src", "src.*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "src.version.__version__" }
+
+[tool.black]
+line-length = 88
+target-version = ["py310", "py311", "py312", "py313"]

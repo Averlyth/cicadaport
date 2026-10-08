@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from contextlib import closing
 import hashlib
-import os
 from pathlib import Path
 import sqlite3
 from tempfile import TemporaryDirectory
@@ -27,7 +27,6 @@ from src.session_store_v2 import (
     SessionStoreV2Error,
     SessionStoreV2IntegrityError,
 )
-
 
 SESSION_ID = "55555555-5555-4555-8555-555555555555"
 CREATED_AT = "2026-07-30T02:00:00Z"
@@ -161,8 +160,10 @@ def test_v1_migration_is_read_only_idempotent_and_audited() -> None:
 
         for name, digest in source_hashes.items():
             assert hashlib.sha256((root / name).read_bytes()).hexdigest() == digest
-        with sqlite3.connect(root / SESSION_DATABASE_NAME) as connection:
-            assert connection.execute("SELECT COUNT(*) FROM migration").fetchone()[0] == 1
+        with closing(sqlite3.connect(root / SESSION_DATABASE_NAME)) as connection:
+            assert (
+                connection.execute("SELECT COUNT(*) FROM migration").fetchone()[0] == 1
+            )
 
 
 def test_v2_detects_result_tampering() -> None:
@@ -172,7 +173,7 @@ def test_v2_detects_result_tampering() -> None:
         store = SessionStoreV2.single_target(root, migrate_v1=False)
         store.persist(checkpoint(plan, 0))
         store.persist(checkpoint(plan, 1))
-        with sqlite3.connect(root / SESSION_DATABASE_NAME) as connection:
+        with closing(sqlite3.connect(root / SESSION_DATABASE_NAME)) as connection:
             connection.execute(
                 "UPDATE port_result SET result_json='{}' WHERE port=?",
                 (plan.ports[0],),
@@ -200,6 +201,7 @@ def test_v2_export_bundle_is_private_and_hashed() -> None:
         audit = store.audit(full=True)
         assert audit["artifact_count"] == 4
         assert audit["event_digest_errors"] == []
+
 
 class ImmediateExecutor:
     def scan(
@@ -299,9 +301,7 @@ def test_multi_target_runner_uses_same_v2_backend() -> None:
                 counter["value"] += 1
                 return f"2026-07-30T03:00:{counter['value']:02d}Z"
 
-        store = SessionStoreV2.multi_target(
-            Path(temporary) / "batch", migrate_v1=False
-        )
+        store = SessionStoreV2.multi_target(Path(temporary) / "batch", migrate_v1=False)
         runner = MultiTargetSessionRunner(
             store,
             executor_factory=lambda _identity: ImmediateExecutor(),
@@ -340,10 +340,13 @@ def test_incremental_batches_advance_logical_sequence_and_bound_history() -> Non
         assert loaded.sequence == 300
         assert len(loaded.endpoints[0].completed_results) == 300
         assert not loaded.endpoints[0].pending_ports
-        with sqlite3.connect(store.database_path) as connection:
-            assert connection.execute(
-                "SELECT COUNT(*) FROM checkpoint_history"
-            ).fetchone()[0] == 4
+        with closing(sqlite3.connect(store.database_path)) as connection:
+            assert (
+                connection.execute(
+                    "SELECT COUNT(*) FROM checkpoint_history"
+                ).fetchone()[0]
+                == 4
+            )
 
 
 def test_strict_profile_requires_single_result_transactions() -> None:
@@ -429,7 +432,7 @@ def test_state_digest_tampering_is_detected() -> None:
             (result_for(identity, plan.ports[0]),),
             updated_at="2026-07-30T04:03:00Z",
         )
-        with sqlite3.connect(store.database_path) as connection:
+        with closing(sqlite3.connect(store.database_path)) as connection:
             connection.execute(
                 "UPDATE session_state SET state_digest=? WHERE singleton=1",
                 ("0" * 64,),
@@ -537,16 +540,14 @@ def test_sqlite_write_failure_rolls_back_and_preserves_checkpoint() -> None:
             Path(temporary) / "session", migrate_v1=False
         )
         store.persist(checkpoint(plan, 0))
-        with sqlite3.connect(store.database_path) as connection:
-            connection.execute(
-                """
+        with closing(sqlite3.connect(store.database_path)) as connection:
+            connection.execute("""
                 CREATE TRIGGER simulate_disk_full
                 BEFORE INSERT ON port_result
                 BEGIN
                     SELECT RAISE(ABORT, 'database or disk is full');
                 END
-                """
-            )
+                """)
             connection.commit()
         identity = plan.resolved_targets[0]
         batch = tuple(result_for(identity, port) for port in plan.ports[:128])
@@ -556,7 +557,7 @@ def test_sqlite_write_failure_rolls_back_and_preserves_checkpoint() -> None:
                 batch,
                 updated_at="2026-07-30T04:05:00Z",
             )
-        with sqlite3.connect(store.database_path) as connection:
+        with closing(sqlite3.connect(store.database_path)) as connection:
             connection.execute("DROP TRIGGER simulate_disk_full")
             connection.commit()
         recovered = store.load()
@@ -574,9 +575,7 @@ def test_recover_rolls_back_uncommitted_state() -> None:
         store.persist(checkpoint(plan, 0))
         connection = store._connect()
         connection.execute("BEGIN IMMEDIATE")
-        connection.execute(
-            "UPDATE session_state SET sequence=999 WHERE singleton=1"
-        )
+        connection.execute("UPDATE session_state SET sequence=999 WHERE singleton=1")
         connection.close()
         recovered = store.recover()
         assert recovered.sequence == 0

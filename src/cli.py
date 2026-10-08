@@ -93,9 +93,7 @@ class PortScannerCLI:
             dest="exclusions",
             action="append",
             default=[],
-            help=(
-                "Objetivo, rango o CIDR que debe excluirse. Puede repetirse."
-            ),
+            help=("Objetivo, rango o CIDR que debe excluirse. Puede repetirse."),
         )
         target_group.add_argument(
             "--target-workers",
@@ -468,9 +466,7 @@ class PortScannerCLI:
     ) -> List[ScanResult]:
         """Obtiene banners Go para resultados abiertos."""
         open_ports = [
-            result.port
-            for result in results
-            if result.state is PortState.OPEN
+            result.port for result in results if result.state is PortState.OPEN
         ]
         if not open_ports:
             return results

@@ -25,7 +25,7 @@ import threading
 from typing import Any, Callable, Dict, Iterable, Mapping, Optional, Protocol, Tuple
 from uuid import UUID, uuid4
 
-from src.contracts import NativeBannerResult, PortState, TargetIdentity
+from src.contracts import NativeBannerResult, TargetIdentity
 from src.errors import ScanCancelledError
 from src.scanner import ScanResult
 from src.session import (
@@ -309,9 +309,7 @@ class StorePointer:
 
 def _strict_json_object(document: str, record_name: str) -> Dict[str, Any]:
     if not isinstance(document, str):
-        raise SessionCheckpointIntegrityError(
-            f"{record_name} debe ser texto JSON."
-        )
+        raise SessionCheckpointIntegrityError(f"{record_name} debe ser texto JSON.")
 
     def reject_constant(value: str) -> None:
         raise SessionCheckpointIntegrityError(
@@ -375,9 +373,7 @@ def _require_single_target_plan(plan: ScanPlan) -> None:
             "SUBTASK 4.2 admite exactamente un objetivo y un endpoint resuelto."
         )
     if plan.target_workers != 1:
-        raise SingleTargetScopeError(
-            "SUBTASK 4.2 requiere target_workers=1."
-        )
+        raise SingleTargetScopeError("SUBTASK 4.2 requiere target_workers=1.")
 
 
 class SingleTargetCheckpointStore:
@@ -491,9 +487,7 @@ class SingleTargetCheckpointStore:
             try:
                 os.link(temporary_name, path)
             except FileExistsError:
-                existing = self._read_regular_file(
-                    path, maximum=MAX_DOCUMENT_BYTES
-                )
+                existing = self._read_regular_file(path, maximum=MAX_DOCUMENT_BYTES)
                 if existing != content:
                     raise SessionPersistenceError(
                         f"Colisión concurrente en la generación {path.name}."
@@ -631,9 +625,7 @@ class SingleTargetCheckpointStore:
                 "El SHA-256 del manifiesto no coincide con CURRENT.json."
             )
         try:
-            checkpoint = SessionCheckpoint.from_json(
-                checkpoint_bytes.decode("utf-8")
-            )
+            checkpoint = SessionCheckpoint.from_json(checkpoint_bytes.decode("utf-8"))
             manifest = SessionManifest.from_json(manifest_bytes.decode("utf-8"))
         except UnicodeDecodeError as error:
             raise SessionCheckpointIntegrityError(
@@ -769,7 +761,7 @@ class SingleTargetSessionRunner:
             )
             self.store.persist(cancelled)
             raise
-        except KeyboardInterrupt as error:
+        except KeyboardInterrupt:
             latest = self.store.load()
             cancelled = self._replace_checkpoint(
                 latest,
@@ -1081,9 +1073,7 @@ class SingleTargetSessionRunner:
         result.attach_target_identity(identity.requested, identity.address)
         payload = result.to_contract_dict()
         if payload["protocol"] != "tcp":
-            raise SessionExecutionError(
-                "SUBTASK 4.2 solo admite resultados TCP."
-            )
+            raise SessionExecutionError("SUBTASK 4.2 solo admite resultados TCP.")
         return payload
 
     def _replace_checkpoint(

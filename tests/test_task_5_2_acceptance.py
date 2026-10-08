@@ -4,7 +4,6 @@ import importlib.util
 from pathlib import Path
 import sys
 
-
 MODULE_PATH = Path(__file__).parents[1] / "benchmarks" / "task_5_2_acceptance.py"
 SPEC = importlib.util.spec_from_file_location("task_5_2_acceptance", MODULE_PATH)
 assert SPEC is not None and SPEC.loader is not None
@@ -78,6 +77,6 @@ def test_runner_uses_private_child_work_directory_and_logs_setup() -> None:
     source = runner.read_text(encoding="utf-8")
     assert "TASK52_WORK_ROOT=/dev/shm" not in source
     assert "TASK52_WORK_PARENT=/dev/shm" in source
-    assert 'cicadaport-task-5-2-${UID}-${STAMP}' in source
+    assert "cicadaport-task-5-2-${UID}-${STAMP}" in source
     assert 'touch "$LOG_FILE"' in source
-    assert source.index('touch "$LOG_FILE"') < source.index('run_acceptance()')
+    assert source.index('touch "$LOG_FILE"') < source.index("run_acceptance()")

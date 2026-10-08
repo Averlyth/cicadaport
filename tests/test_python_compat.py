@@ -23,9 +23,7 @@ def test_selects_compatible_candidate() -> None:
     class NativeLike(str, enum.Enum):
         VALUE = "value"
 
-    assert _select_str_enum(
-        SimpleNamespace(StrEnum=NativeLike)
-    ) is NativeLike
+    assert _select_str_enum(SimpleNamespace(StrEnum=NativeLike)) is NativeLike
 
 
 def test_rejects_incompatible_candidate() -> None:
@@ -54,6 +52,7 @@ def test_fallback_auto_uses_lower_case_member_name() -> None:
 
 def test_fallback_rejects_non_string_values() -> None:
     with pytest.raises(TypeError, match="must be strings"):
+
         class Invalid(_FallbackStrEnum):
             VALUE = 1
 

@@ -16,7 +16,6 @@ from threading import RLock
 import time
 from typing import Any, Callable, Mapping
 
-
 CONTRACT = "HRML-CICADAPORT-6.3-001"
 CONTRACT_VERSION = 1
 HEALTH_SCHEMA = "cicadaport-health-v1"
@@ -249,13 +248,9 @@ def readiness_from_environment_diagnostics(
     )
 
     dependency_items = diagnostics.get("dependencies")
-    dependencies_ready = (
-        isinstance(dependency_items, list)
-        and all(
-            isinstance(item, Mapping)
-            and item.get("policy_pass") is True
-            for item in dependency_items
-        )
+    dependencies_ready = isinstance(dependency_items, list) and all(
+        isinstance(item, Mapping) and item.get("policy_pass") is True
+        for item in dependency_items
     )
 
     return evaluate_readiness(

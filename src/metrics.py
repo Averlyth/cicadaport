@@ -8,7 +8,6 @@ import math
 from threading import RLock
 from typing import Any, Mapping
 
-
 CONTRACT = "HRML-CICADAPORT-6.3-001"
 CONTRACT_VERSION = 1
 METRICS_SCHEMA = "cicadaport-metrics-v1"
@@ -176,11 +175,7 @@ class BoundedMetricsRegistry:
         if definition.kind is not MetricKind.GAUGE:
             raise MetricError("La métrica no es GAUGE.")
         numeric_delta = _finite_number(delta)
-        normalized_floor = (
-            None
-            if floor is None
-            else _finite_number(floor)
-        )
+        normalized_floor = None if floor is None else _finite_number(floor)
         key = (name, _normalize_labels(definition, labels))
         with self._lock:
             candidate = self._gauges.get(key, 0.0) + numeric_delta
@@ -265,9 +260,7 @@ class BoundedMetricsRegistry:
                             "le": upper_bound,
                             "count": state["bucket_counts"][index],
                         }
-                        for index, upper_bound in enumerate(
-                            definition.buckets
-                        )
+                        for index, upper_bound in enumerate(definition.buckets)
                     ],
                 }
             )

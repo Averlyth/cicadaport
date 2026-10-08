@@ -15,8 +15,7 @@ import os
 from pathlib import Path
 import secrets
 import stat
-from typing import BinaryIO, TextIO
-
+from typing import TextIO
 
 PRIVATE_DIRECTORY_MODE = 0o700
 PRIVATE_FILE_MODE = 0o600
@@ -169,9 +168,7 @@ def _ensure_private_descendant(root: Path, parent: Path) -> Path:
                 f"No fue posible proteger el directorio {current}."
             ) from error
         if stat.S_IMODE(current.stat().st_mode) != PRIVATE_DIRECTORY_MODE:
-            raise SecureArtifactError(
-                f"El directorio {current} no quedó en modo 0700."
-            )
+            raise SecureArtifactError(f"El directorio {current} no quedó en modo 0700.")
     return current.resolve(strict=True)
 
 
@@ -236,7 +233,9 @@ class SecureArtifactWriter:
         if not isinstance(content, bytes):
             raise SecureArtifactError("El contenido binario debe ser bytes.")
         if len(content) > MAX_ARTIFACT_BYTES:
-            raise SecureArtifactError("El artefacto excede el tamaño máximo autorizado.")
+            raise SecureArtifactError(
+                "El artefacto excede el tamaño máximo autorizado."
+            )
 
         final_path = self.resolve(path_value)
         parent = final_path.parent.resolve(strict=True)
@@ -277,7 +276,9 @@ class SecureArtifactWriter:
             _fsync_directory(parent)
             data = final_path.read_bytes()
             if data != content:
-                raise SecureArtifactError("La verificación posterior del artefacto falló.")
+                raise SecureArtifactError(
+                    "La verificación posterior del artefacto falló."
+                )
             return ArtifactReceipt(
                 path=final_path.resolve(strict=True),
                 sha256=hashlib.sha256(data).hexdigest(),

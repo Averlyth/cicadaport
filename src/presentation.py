@@ -81,9 +81,7 @@ class ConsolePresenter:
             print("\nFALLOS POR OBJETIVO")
             for failure in outcome.failures:
                 resolved = (
-                    f" ({failure.resolved_host})"
-                    if failure.resolved_host
-                    else ""
+                    f" ({failure.resolved_host})" if failure.resolved_host else ""
                 )
                 print(
                     f"  {failure.target}{resolved}: "

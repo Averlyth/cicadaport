@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 import queue
 import threading
-import time
 from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
@@ -199,9 +198,7 @@ class BatchSessionCLITests(unittest.TestCase):
             "single",
         ]
         single_cli, single_args = self._parse(single_argv)
-        self.assertFalse(
-            session_requires_batch(single_cli, single_args, single_argv)
-        )
+        self.assertFalse(session_requires_batch(single_cli, single_args, single_argv))
 
         batch_argv = [
             "127.0.0.1",
@@ -213,9 +210,7 @@ class BatchSessionCLITests(unittest.TestCase):
             "batch",
         ]
         batch_cli, batch_args = self._parse(batch_argv)
-        self.assertTrue(
-            session_requires_batch(batch_cli, batch_args, batch_argv)
-        )
+        self.assertTrue(session_requires_batch(batch_cli, batch_args, batch_argv))
 
         tui_argv = [
             "127.0.0.1",
@@ -226,9 +221,7 @@ class BatchSessionCLITests(unittest.TestCase):
             "--tui",
         ]
         tui_cli, tui_args = self._parse(tui_argv)
-        self.assertTrue(
-            session_requires_batch(tui_cli, tui_args, tui_argv)
-        )
+        self.assertTrue(session_requires_batch(tui_cli, tui_args, tui_argv))
 
     def test_batch_cli_creates_reports_and_versioned_events(self) -> None:
         with TemporaryDirectory() as temporary:
@@ -274,9 +267,7 @@ class BatchSessionCLITests(unittest.TestCase):
 
             records = [
                 json.loads(line)
-                for line in events_path.read_text(
-                    encoding="utf-8"
-                ).splitlines()
+                for line in events_path.read_text(encoding="utf-8").splitlines()
             ]
             self.assertGreater(len(records), 4)
             self.assertEqual(
@@ -284,10 +275,7 @@ class BatchSessionCLITests(unittest.TestCase):
                 [record["sequence"] for record in records],
             )
             self.assertTrue(
-                all(
-                    set(record) == PUBLIC_SESSION_EVENT_FIELDS
-                    for record in records
-                )
+                all(set(record) == PUBLIC_SESSION_EVENT_FIELDS for record in records)
             )
             self.assertEqual("session_started", records[0]["event"])
             self.assertEqual("session_completed", records[-1]["event"])
@@ -355,9 +343,7 @@ class SessionTuiControllerTests(unittest.TestCase):
             make_identity("127.0.0.2", "127.0.0.2"),
         )
         batch_plan = ScanPlan(
-            requested_targets=tuple(
-                item.requested for item in identities
-            ),
+            requested_targets=tuple(item.requested for item in identities),
             resolved_targets=identities,
             ports=(80, 81),
             timeout_ms=100,
@@ -396,9 +382,7 @@ class SessionTuiControllerTests(unittest.TestCase):
             )
             try:
                 first = controller.run()
-                call_snapshot = {
-                    key: list(value) for key, value in calls.items()
-                }
+                call_snapshot = {key: list(value) for key, value in calls.items()}
                 emitted.clear()
                 second = controller.run()
             finally:
@@ -456,15 +440,10 @@ class SessionTuiControllerTests(unittest.TestCase):
             self.assertFalse(thread.is_alive())
             error = failures.get_nowait()
             self.assertIsInstance(error, ScanCancelledError)
-            checkpoint = MultiTargetCheckpointStore(
-                prepared.session_dir
-            ).load()
+            checkpoint = MultiTargetCheckpointStore(prepared.session_dir).load()
             self.assertIs(checkpoint.status, SessionStatus.CANCELLED)
             self.assertTrue(
-                any(
-                    event.kind is ScanEventType.CANCELLED
-                    for event in emitted
-                )
+                any(event.kind is ScanEventType.CANCELLED for event in emitted)
             )
 
 

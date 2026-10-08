@@ -5,6 +5,7 @@ from __future__ import annotations
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+
 try:
     import tomllib
 except ModuleNotFoundError:  # Python 3.10
@@ -23,8 +24,8 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def test_single_version_source_drives_cli_and_metadata() -> None:
-    assert __version__ == "3.0.0rc2"
-    assert SEMVER_VERSION == "3.0.0-rc.2"
+    assert __version__ == "3.0.0rc3"
+    assert SEMVER_VERSION == "3.0.0-rc.3"
     output = StringIO()
     with redirect_stdout(output), pytest.raises(SystemExit) as exit_info:
         PortScannerCLI().parser.parse_args(["--version"])
@@ -32,7 +33,10 @@ def test_single_version_source_drives_cli_and_metadata() -> None:
     assert output.getvalue().strip() == f"CicadaPort {__version__}"
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert pyproject["project"]["dynamic"] == ["version"]
-    assert pyproject["tool"]["setuptools"]["dynamic"]["version"]["attr"] == "src.version.__version__"
+    assert (
+        pyproject["tool"]["setuptools"]["dynamic"]["version"]["attr"]
+        == "src.version.__version__"
+    )
     assert "2.2.0" not in (ROOT / "setup.py").read_text(encoding="utf-8")
     assert "2.2.0" not in (ROOT / "src" / "cli.py").read_text(encoding="utf-8")
 
@@ -85,24 +89,28 @@ def test_bridges_use_central_resolver(monkeypatch, tmp_path) -> None:
     for binary in (rust, go):
         binary.write_text("", encoding="utf-8")
         binary.chmod(0o755)
-    monkeypatch.setattr("src.bridge_rust.resolve_native_binary", lambda engine, explicit_path=None: rust)
-    monkeypatch.setattr("src.bridge_go.resolve_native_binary", lambda engine, explicit_path=None: go)
+    monkeypatch.setattr(
+        "src.bridge_rust.resolve_native_binary", lambda engine, explicit_path=None: rust
+    )
+    monkeypatch.setattr(
+        "src.bridge_go.resolve_native_binary", lambda engine, explicit_path=None: go
+    )
     assert RustScannerBridge().binary_path == rust
     assert GoBannerBridge().binary_path == go
 
 
 def test_release_files_and_toolchains_are_pinned() -> None:
-    assert 'channel = "1.97.1"' in (ROOT / "rust-toolchain.toml").read_text(encoding="utf-8")
+    assert 'channel = "1.97.1"' in (ROOT / "rust-toolchain.toml").read_text(
+        encoding="utf-8"
+    )
     check_tools = (ROOT / "scripts" / "check_tools.sh").read_text(encoding="utf-8")
-    inventory = (
-        ROOT / "scripts" / "generate_component_inventory.py"
-    ).read_text(encoding="utf-8")
+    inventory = (ROOT / "scripts" / "generate_component_inventory.py").read_text(
+        encoding="utf-8"
+    )
     setup_source = (ROOT / "setup.py").read_text(encoding="utf-8")
     assert "rustup run 1.97.1 rustc --version" in check_tools
     assert '"rustup", "run", "1.97.1", "rustc", "--version"' in inventory
-    smoke = (ROOT / "scripts" / "release_smoke.py").read_text(
-        encoding="utf-8"
-    )
+    smoke = (ROOT / "scripts" / "release_smoke.py").read_text(encoding="utf-8")
     assert 'import_module("src.tui")' in smoke
     assert "import src.tui" not in smoke
     assert 'Path(sysconfig.get_path("scripts"))' in smoke
@@ -117,9 +125,12 @@ def test_release_files_and_toolchains_are_pinned() -> None:
         'build_root = Path(self.build_lib).resolve().parent / "native-build"'
         in setup_source
     )
-    assert setup_source.count(
-        'native_directory = Path(self.build_lib).resolve() / "src" / "_native"'
-    ) == 2
+    assert (
+        setup_source.count(
+            'native_directory = Path(self.build_lib).resolve() / "src" / "_native"'
+        )
+        == 2
+    )
     assert "setuptools.command.bdist_wheel" in setup_source
     assert "wheel.bdist_wheel" not in setup_source
     assert "cargo +1.97.1 rustc --version" not in check_tools
@@ -141,11 +152,13 @@ def test_ci_declares_supported_matrix_and_artifacts() -> None:
     for version in ("3.10", "3.11", "3.12", "3.13"):
         assert f'"{version}"' in workflow
     assert '"3.14"' not in workflow
-    assert 'python-version: ${{ matrix.python-version }}' in workflow
+    assert "python-version: ${{ matrix.python-version }}" in workflow
     assert (
-        'name: Installed artifacts (${{ matrix.os }}, '
-        'Python ${{ matrix.python-version }})'
+        "name: Installed artifacts (${{ matrix.os }}, "
+        "Python ${{ matrix.python-version }})"
     ) in workflow
     assert "build_release_artifacts.sh" in workflow
     assert "test_release_artifacts.sh" in workflow
-    assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in workflow
+    assert (
+        "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in workflow
+    )

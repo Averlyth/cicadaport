@@ -4,12 +4,10 @@ import importlib.util
 import json
 import os
 from pathlib import Path
-import stat
 import sys
 import tempfile
 
 import pytest
-
 
 REPO = Path(__file__).resolve().parents[1]
 MODULE_PATH = REPO / "src" / "operations.py"
@@ -51,17 +49,11 @@ def test_local_defaults_are_deterministic() -> None:
     )
     assert config.profile == "local"
     assert config.paths.config_dir == Path("/home/operator/.config/cicadaport")
-    assert config.paths.state_dir == Path(
-        "/home/operator/.local/state/cicadaport"
-    )
-    assert config.paths.artifact_dir == (
-        config.paths.state_dir / "artifacts"
-    )
+    assert config.paths.state_dir == Path("/home/operator/.local/state/cicadaport")
+    assert config.paths.artifact_dir == (config.paths.state_dir / "artifacts")
     assert config.paths.log_dir == config.paths.state_dir / "logs"
     assert config.paths.runtime_dir == Path("/run/user/1000/cicadaport")
-    assert config.paths.install_dir == Path(
-        "/home/operator/.local/share/cicadaport"
-    )
+    assert config.paths.install_dir == Path("/home/operator/.local/share/cicadaport")
 
 
 def test_precedence_is_explicit_then_environment_then_default() -> None:
@@ -77,13 +69,10 @@ def test_precedence_is_explicit_then_environment_then_default() -> None:
         environ=environment,
     )
     assert config.paths.state_dir == Path("/srv/cicadaport-state")
-    assert config.paths.artifact_dir == Path(
-        "/srv/cicadaport-state/explicit-artifacts"
-    )
+    assert config.paths.artifact_dir == Path("/srv/cicadaport-state/explicit-artifacts")
     assert config.sources["state_dir"] == "environment"
     assert config.sources["artifact_dir"] == "explicit"
     assert config.sources["log_dir"] == "default"
-
 
 
 def test_state_override_rebases_local_dependent_defaults() -> None:
@@ -92,14 +81,11 @@ def test_state_override_rebases_local_dependent_defaults() -> None:
     environment["CICADAPORT_STATE_DIR"] = "/srv/cicadaport-state"
     config = MODULE.resolve_operational_config(environ=environment)
     assert config.paths.state_dir == Path("/srv/cicadaport-state")
-    assert config.paths.artifact_dir == Path(
-        "/srv/cicadaport-state/artifacts"
-    )
+    assert config.paths.artifact_dir == Path("/srv/cicadaport-state/artifacts")
     assert config.paths.log_dir == Path("/srv/cicadaport-state/logs")
-    assert config.paths.runtime_dir == Path(
-        "/srv/cicadaport-state/runtime"
-    )
+    assert config.paths.runtime_dir == Path("/srv/cicadaport-state/runtime")
     assert config.sources["artifact_dir"] == "default"
+
 
 def test_invalid_paths_fail_closed() -> None:
     with pytest.raises(MODULE.OperationalConfigurationError):
@@ -203,10 +189,7 @@ def test_support_classification_does_not_expand_declared_matrix() -> None:
 
 
 def test_deployment_actions_are_separated() -> None:
-    actions = {
-        item["name"]: item
-        for item in MODULE.deployment_action_contract()
-    }
+    actions = {item["name"]: item for item in MODULE.deployment_action_contract()}
     assert set(actions) == {
         "install",
         "validate",

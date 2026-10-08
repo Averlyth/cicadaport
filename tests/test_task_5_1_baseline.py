@@ -7,7 +7,6 @@ import tempfile
 import unittest
 import sys
 
-
 REPO = Path(__file__).resolve().parents[1]
 MODULE_PATH = REPO / "benchmarks" / "task_5_1_baseline.py"
 SPEC = importlib.util.spec_from_file_location("task_5_1_baseline", MODULE_PATH)
@@ -57,7 +56,9 @@ class Task51BaselineContractTests(unittest.TestCase):
 
     def test_static_facts_do_not_execute_network(self) -> None:
         facts = baseline.static_architecture_facts(REPO)
-        self.assertEqual(set(facts), {"session_store", "rust_engine", "go_engine", "reports"})
+        self.assertEqual(
+            set(facts), {"session_store", "rust_engine", "go_engine", "reports"}
+        )
         self.assertIn("generational_checkpoint", facts["session_store"])
         self.assertIn("blocking_threads", facts["rust_engine"])
         self.assertIn("single_read", facts["go_engine"])

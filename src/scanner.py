@@ -33,12 +33,12 @@ class ScanResult:
     banner: Optional[str] = None
     response_time: float = 0.0
     protocol: str = "tcp"
-    state: PortState | str | None = None
+    state: PortState | None = None
     target: str = ""
     address: str = ""
-    address_family: AddressFamily | str | None = None
-    host_state: HostState | str = HostState.UNKNOWN
-    technique: ScanTechnique | str = ScanTechnique.TCP_CONNECT
+    address_family: AddressFamily | None = None
+    host_state: HostState = HostState.UNKNOWN
+    technique: ScanTechnique = ScanTechnique.TCP_CONNECT
     evidence: ScanEvidence = field(default_factory=ScanEvidence)
     contract_version: int = SCAN_CONTRACT_VERSION
 
@@ -78,9 +78,7 @@ class ScanResult:
             try:
                 self.technique = ScanTechnique(self.technique)
             except (TypeError, ValueError) as error:
-                raise ValueError(
-                    f"technique no válida: {self.technique!r}."
-                ) from error
+                raise ValueError(f"technique no válida: {self.technique!r}.") from error
         if self.protocol == "udp" and self.technique is ScanTechnique.TCP_CONNECT:
             self.technique = ScanTechnique.UDP
 
@@ -114,9 +112,7 @@ class ScanResult:
                 ) from error
             self.address = str(address)
             inferred_family = (
-                AddressFamily.IPV4
-                if address.version == 4
-                else AddressFamily.IPV6
+                AddressFamily.IPV4 if address.version == 4 else AddressFamily.IPV6
             )
             if self.address_family is None:
                 self.address_family = inferred_family
@@ -134,6 +130,14 @@ class ScanResult:
             raise ValueError("address_family requiere una dirección IP.")
 
     @property
+    def canonical_state(self) -> PortState:
+        """Return the normalized state established by ``__post_init__``."""
+
+        if self.state is None:
+            raise RuntimeError("ScanResult state was not normalized")
+        return self.state
+
+    @property
     def reason(self) -> ReasonCode:
         """Razón técnica que sustenta el estado canónico."""
         return self.evidence.reason
@@ -143,15 +147,11 @@ class ScanResult:
         try:
             parsed_address = ipaddress.ip_address(address)
         except ValueError as error:
-            raise ValueError(
-                f"address no es una IP válida: {address!r}."
-            ) from error
+            raise ValueError(f"address no es una IP válida: {address!r}.") from error
         self.target = target
         self.address = str(parsed_address)
         self.address_family = (
-            AddressFamily.IPV4
-            if parsed_address.version == 4
-            else AddressFamily.IPV6
+            AddressFamily.IPV4 if parsed_address.version == 4 else AddressFamily.IPV6
         )
 
     def to_contract_dict(self) -> Dict[str, Any]:
@@ -167,7 +167,7 @@ class ScanResult:
             "host_state": self.host_state.value,
             "port": self.port,
             "protocol": self.protocol,
-            "state": self.state.value,
+            "state": self.canonical_state.value,
             "reason": self.reason.value,
             "technique": self.technique.value,
             "service": self.service,
@@ -195,11 +195,7 @@ class ScanResult:
             state = PortState(payload["state"])
         except (KeyError, TypeError, ValueError) as error:
             raise ValueError("El contrato requiere port y state válidos.") from error
-        is_open = (
-            payload["is_open"]
-            if "is_open" in payload
-            else state.legacy_is_open
-        )
+        is_open = payload["is_open"] if "is_open" in payload else state.legacy_is_open
         evidence_payload = payload.get("evidence", {})
         if not evidence_payload and payload.get("reason"):
             evidence_payload = {
@@ -544,9 +540,7 @@ class PortScanner:
                 host_state = HostState.UP
                 reason = ReasonCode.ICMP_PORT_UNREACHABLE
             else:
-                state, host_state, reason = self._classify_connect_error(
-                    error_number
-                )
+                state, host_state, reason = self._classify_connect_error(error_number)
             return ScanResult(
                 port=port,
                 is_open=state.legacy_is_open,

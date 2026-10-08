@@ -4,7 +4,6 @@ import json
 import os
 from pathlib import Path
 import re
-import stat
 from typing import Any
 
 import pytest
@@ -98,10 +97,7 @@ def test_precedence_cli_environment_file_default(tmp_path: Path) -> None:
     assert resolved.field("log_level").source == SOURCE_CLI
     assert resolved.get("diagnostics_enabled") is False
     assert resolved.field("diagnostics_enabled").source == SOURCE_FILE
-    assert (
-        resolved.field("strict_environment_validation").source
-        == SOURCE_DEFAULT
-    )
+    assert resolved.field("strict_environment_validation").source == SOURCE_DEFAULT
 
     from_environment = resolve_configuration(
         DEFAULT_SCHEMA,
@@ -109,10 +105,7 @@ def test_precedence_cli_environment_file_default(tmp_path: Path) -> None:
         explicit_file=config_path,
     )
     assert from_environment.get("log_level") == "ERROR"
-    assert (
-        from_environment.field("log_level").source
-        == SOURCE_ENVIRONMENT
-    )
+    assert from_environment.field("log_level").source == SOURCE_ENVIRONMENT
 
 
 def test_empty_higher_precedence_does_not_fall_back(
@@ -286,22 +279,26 @@ def test_redaction_is_deterministic_and_high_signal() -> None:
         ValueClass.SENSITIVE,
         "abc123",
     )
-    source = (
-        'token=' + 'abc123' + '456789' + ' path=abc123 Bearer abcdefghijklmnop'
-    )
+    source = "token=" + "abc123" + "456789" + " path=abc123 Bearer abcdefghijklmnop"
     expected = (
         "token=<REDACTED_SECRET> "
         "path=<REDACTED_SENSITIVE> "
         "Bearer <REDACTED_BEARER_TOKEN>"
     )
-    assert redact_text(
-        source,
-        protected_values=(second, first),
-    ) == expected
-    assert redact_text(
-        source,
-        protected_values=(first, second),
-    ) == expected
+    assert (
+        redact_text(
+            source,
+            protected_values=(second, first),
+        )
+        == expected
+    )
+    assert (
+        redact_text(
+            source,
+            protected_values=(first, second),
+        )
+        == expected
+    )
 
 
 def test_safe_mapping_never_serializes_non_public_values() -> None:
@@ -357,9 +354,7 @@ def test_task_configuration_composes_frozen_operational_layout(
         environ=environment,
         explicit_file=config_path,
     )
-    assert task.operational.paths.state_dir == Path(
-        "/srv/cicadaport-state"
-    )
+    assert task.operational.paths.state_dir == Path("/srv/cicadaport-state")
     assert task.operational.paths.artifact_dir == Path(
         "/srv/cicadaport-state/artifacts-cli"
     )
@@ -455,31 +450,26 @@ def test_toolchain_observation_is_offline_and_sanitized() -> None:
     )
     assert commands == [("/usr/bin/tool", "--version")]
     assert result["policy_pass"] is True
-    assert (
-        result["version_output"]
-        == "tool 1.0 Bearer <REDACTED_BEARER_TOKEN>"
-    )
+    assert result["version_output"] == "tool 1.0 Bearer <REDACTED_BEARER_TOKEN>"
     assert result["external_network_requested"] is False
     assert result["installation_performed"] is False
 
 
-
 def test_integrated_validator_preserves_site_packages_for_dependency_checks() -> None:
-    source = Path(
-        "scripts/validate_task_6_2_configuration_environment.sh"
-    ).read_text(encoding="utf-8")
+    source = Path("scripts/validate_task_6_2_configuration_environment.sh").read_text(
+        encoding="utf-8"
+    )
 
     safe_invocation = re.compile(
-        r'"\$PYTHON_BIN"\s+-I\s+-\s+\\\n'
-        r'\s+"\$DIAGNOSTICS_JSON"'
+        r'"\$PYTHON_BIN"\s+-I\s+-\s+\\\n' r'\s+"\$DIAGNOSTICS_JSON"'
     )
     isolated_without_site_packages = re.compile(
-        r'"\$PYTHON_BIN"\s+-I\s+-S\s+-\s+\\\n'
-        r'\s+"\$DIAGNOSTICS_JSON"'
+        r'"\$PYTHON_BIN"\s+-I\s+-S\s+-\s+\\\n' r'\s+"\$DIAGNOSTICS_JSON"'
     )
 
     assert safe_invocation.search(source) is not None
     assert isolated_without_site_packages.search(source) is None
+
 
 def test_environment_diagnostics_fail_closed_on_required_dependency(
     tmp_path: Path,

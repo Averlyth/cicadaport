@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from pathlib import Path
 import threading
 import time
@@ -71,9 +70,7 @@ def result(
 ) -> dict[str, object]:
     state = PortState.OPEN if is_open else PortState.CLOSED
     reason = (
-        ReasonCode.CONNECTION_ACCEPTED
-        if is_open
-        else ReasonCode.CONNECTION_REFUSED
+        ReasonCode.CONNECTION_ACCEPTED if is_open else ReasonCode.CONNECTION_REFUSED
     )
     return ScanResult(
         port=port,
@@ -272,8 +269,7 @@ class MultiTargetRunnerTests(unittest.TestCase):
             self.assertEqual(
                 12,
                 sum(
-                    len(endpoint.completed_results)
-                    for endpoint in completed.endpoints
+                    len(endpoint.completed_results) for endpoint in completed.endpoints
                 ),
             )
             self.assertTrue(
@@ -384,8 +380,7 @@ class MultiTargetRunnerTests(unittest.TestCase):
             checkpoint = store.load()
             self.assertIs(checkpoint.status, SessionStatus.CANCELLED)
             confirmed = sum(
-                len(endpoint.completed_results)
-                for endpoint in checkpoint.endpoints
+                len(endpoint.completed_results) for endpoint in checkpoint.endpoints
             )
             self.assertGreaterEqual(confirmed, 1)
             self.assertLess(confirmed, 6)
@@ -402,9 +397,7 @@ class MultiTargetRunnerTests(unittest.TestCase):
                     open_ports={80},
                 ),
             )
-            completed = runner.run(
-                plan(ports=(80,), banner_grab=True)
-            )
+            completed = runner.run(plan(ports=(80,), banner_grab=True))
             self.assertIs(completed.status, SessionStatus.COMPLETED)
             self.assertTrue(
                 all(

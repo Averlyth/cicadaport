@@ -154,18 +154,11 @@ class ArtifactManifestSet:
             raise TypeError("manifests must be a tuple")
         if not self.manifests or len(self.manifests) > MAX_ARTIFACTS:
             raise ValueError("manifest count is outside the allowed range")
-        if not all(
-            isinstance(item, ArtifactManifest)
-            for item in self.manifests
-        ):
+        if not all(isinstance(item, ArtifactManifest) for item in self.manifests):
             raise TypeError("manifests must contain ArtifactManifest values")
-        if len({item.artifact_id for item in self.manifests}) != len(
-            self.manifests
-        ):
+        if len({item.artifact_id for item in self.manifests}) != len(self.manifests):
             raise ValueError("artifact identifiers must be unique")
-        if len({item.relative_path for item in self.manifests}) != len(
-            self.manifests
-        ):
+        if len({item.relative_path for item in self.manifests}) != len(self.manifests):
             raise ValueError("artifact paths must be unique")
         if len({item.platform for item in self.manifests}) != 1:
             raise ValueError("all artifacts must target one platform")

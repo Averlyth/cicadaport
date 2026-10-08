@@ -61,7 +61,7 @@ def test_native_event_sequence_commits_only_after_successful_flush() -> None:
     sequence_commit_position = source.index("self.sequence = next_sequence")
     assert flush_position < sequence_commit_position
     assert "checked_add(1)" in source
-    assert 'event: event.to_string()' in source
+    assert "event: event.to_string()" in source
     assert "workers: self.workers" in source
 
 
@@ -81,12 +81,8 @@ def test_productive_rust_has_no_unwrap_expect_or_panic_control_flow() -> None:
 
 
 def test_tokio_is_exact_and_no_git_dependency_is_introduced() -> None:
-    cargo = (REPOSITORY_ROOT / "rust-core" / "Cargo.toml").read_text(
-        encoding="utf-8"
-    )
-    lock = (REPOSITORY_ROOT / "rust-core" / "Cargo.lock").read_text(
-        encoding="utf-8"
-    )
+    cargo = (REPOSITORY_ROOT / "rust-core" / "Cargo.toml").read_text(encoding="utf-8")
+    lock = (REPOSITORY_ROOT / "rust-core" / "Cargo.lock").read_text(encoding="utf-8")
 
     assert cargo.count("[dependencies]") == 1
     assert 'tokio = { version = "=1.53.1"' in cargo

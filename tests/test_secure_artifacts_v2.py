@@ -109,9 +109,7 @@ def test_incremental_stream_is_exclusive_private_and_durable() -> None:
 
 def test_neutralization_is_deterministic() -> None:
     value = "a\x00\x1b\x7f\u202e\u2066b"
-    assert neutralize_text_controls(value) == (
-        "a\\u0000\\u001b\\u007f\\u202e\\u2066b"
-    )
+    assert neutralize_text_controls(value) == ("a\\u0000\\u001b\\u007f\\u202e\\u2066b")
 
 
 def test_relative_escape_is_rejected() -> None:

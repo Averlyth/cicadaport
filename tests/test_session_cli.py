@@ -41,9 +41,7 @@ def make_result(
 ) -> dict[str, object]:
     state = PortState.OPEN if is_open else PortState.CLOSED
     reason = (
-        ReasonCode.CONNECTION_ACCEPTED
-        if is_open
-        else ReasonCode.CONNECTION_REFUSED
+        ReasonCode.CONNECTION_ACCEPTED if is_open else ReasonCode.CONNECTION_REFUSED
     )
     return ScanResult(
         port=port,
@@ -126,17 +124,13 @@ class SessionCLITests(unittest.TestCase):
         self.assertFalse(is_session_mode_requested(args))
 
     def test_session_dir_enables_session_mode(self) -> None:
-        _cli, args = self._parse(
-            ["127.0.0.1", "-p", "80", "--session-dir", "state"]
-        )
+        _cli, args = self._parse(["127.0.0.1", "-p", "80", "--session-dir", "state"])
         self.assertTrue(is_session_mode_requested(args))
 
     def test_build_plan_is_single_endpoint_and_forces_one_target_worker(
         self,
     ) -> None:
-        cli, args = self._parse(
-            ["127.0.0.1", "-p", "80-81", "--session-dir", "state"]
-        )
+        cli, args = self._parse(["127.0.0.1", "-p", "80-81", "--session-dir", "state"])
         plan = build_scan_plan(
             cli,
             args,
@@ -175,9 +169,7 @@ class SessionCLITests(unittest.TestCase):
             )
 
     def test_print_plan_is_deterministic_and_creates_no_session(self) -> None:
-        cli, args = self._parse(
-            ["127.0.0.1", "-p", "80", "--print-plan"]
-        )
+        cli, args = self._parse(["127.0.0.1", "-p", "80", "--print-plan"])
         first = io.StringIO()
         with redirect_stdout(first):
             plan = execute_session_cli(

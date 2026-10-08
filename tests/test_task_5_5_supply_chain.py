@@ -23,7 +23,9 @@ def test_every_external_action_is_pinned_to_a_full_sha() -> None:
 def test_node24_artifact_actions_and_attestations_are_explicit() -> None:
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in source
-    assert "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" in source
+    assert (
+        "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" in source
+    )
     assert source.count("actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6") == 2
     assert "id-token: write" in source
     assert "attestations: write" in source
@@ -42,8 +44,12 @@ def test_release_lock_requires_exact_versions_and_hashes() -> None:
 
 def test_cyclonedx_and_release_manifest_generators_are_deterministic() -> None:
     sbom = (ROOT / "scripts" / "generate_cyclonedx_sbom.py").read_text(encoding="utf-8")
-    manifest = (ROOT / "scripts" / "generate_release_manifest.py").read_text(encoding="utf-8")
-    build = (ROOT / "scripts" / "build_release_artifacts.sh").read_text(encoding="utf-8")
+    manifest = (ROOT / "scripts" / "generate_release_manifest.py").read_text(
+        encoding="utf-8"
+    )
+    build = (ROOT / "scripts" / "build_release_artifacts.sh").read_text(
+        encoding="utf-8"
+    )
     assert '"specVersion": "1.6"' in sbom
     assert "uuid.uuid5" in sbom
     assert "source_index_sha256" in manifest
@@ -71,7 +77,9 @@ def test_sast_secret_scan_and_reproducibility_are_mandatory() -> None:
 
 
 def test_acceptance_preserves_frozen_surfaces_and_blocks_5_6() -> None:
-    runner = (ROOT / "scripts" / "run_task_5_5_acceptance.sh").read_text(encoding="utf-8")
+    runner = (ROOT / "scripts" / "run_task_5_5_acceptance.sh").read_text(
+        encoding="utf-8"
+    )
     assert "RUST_ENGINE_CHANGES=0" in runner
     assert "GO_ENGINE_CHANGES=0" in runner
     assert "SESSION_STORE_CHANGES=0" in runner
@@ -82,7 +90,9 @@ def test_acceptance_preserves_frozen_surfaces_and_blocks_5_6() -> None:
 
 
 def test_attestation_plan_schema_is_documented_in_build_script() -> None:
-    source = (ROOT / "scripts" / "build_release_artifacts.sh").read_text(encoding="utf-8")
+    source = (ROOT / "scripts" / "build_release_artifacts.sh").read_text(
+        encoding="utf-8"
+    )
     marker = '"schema": "cicadaport-attestation-plan-v1"'
     assert marker in source
     assert '"predicate": "https://slsa.dev/provenance/v1"' in source
@@ -105,24 +115,18 @@ def test_static_contract_runner_is_stdlib_only() -> None:
 
 
 def test_acceptance_binds_contract_base_and_current_signed_head() -> None:
-    runner = (
-        ROOT / "scripts" / "run_task_5_5_acceptance.sh"
-    ).read_text(encoding="utf-8")
+    runner = (ROOT / "scripts" / "run_task_5_5_acceptance.sh").read_text(
+        encoding="utf-8"
+    )
     assert (
-        'CONTRACT_BASE_COMMIT="'
-        "845ba78330d969685b15895d05040abfaa8cfd86"
-        '"'
+        'CONTRACT_BASE_COMMIT="' "845ba78330d969685b15895d05040abfaa8cfd86" '"'
     ) in runner
     assert (
-        'EXPECTED_HEAD="${EXPECTED_HEAD:-'
-        '$(git -C "$ROOT" rev-parse HEAD)}"'
+        'EXPECTED_HEAD="${EXPECTED_HEAD:-' '$(git -C "$ROOT" rev-parse HEAD)}"'
     ) in runner
+    assert ('test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"') in runner
     assert (
-        'test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"'
-    ) in runner
-    assert (
-        'git merge-base --is-ancestor '
-        '"$CONTRACT_BASE_COMMIT" "$EXPECTED_HEAD"'
+        "git merge-base --is-ancestor " '"$CONTRACT_BASE_COMMIT" "$EXPECTED_HEAD"'
     ) in runner
     assert "ACCEPTANCE_PRECONDITIONS=BEGIN" in runner
     assert "ACCEPTANCE_PRECONDITIONS=PASS" in runner
@@ -130,9 +134,7 @@ def test_acceptance_binds_contract_base_and_current_signed_head() -> None:
 
 
 def test_release_lock_check_reuses_committed_pins_without_upgrading() -> None:
-    source = (
-        ROOT / "scripts" / "compile_release_lock.sh"
-    ).read_text(encoding="utf-8")
+    source = (ROOT / "scripts" / "compile_release_lock.sh").read_text(encoding="utf-8")
 
     check_guard = 'if [[ "$MODE" == "check" ]]; then'
     missing_message = 'echo "Missing release lock: $OUTPUT" >&2'

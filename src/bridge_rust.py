@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import math
 import os
-from pathlib import Path
 import queue
 import subprocess
 import threading
@@ -237,7 +236,7 @@ class RustScannerBridge:
                 "internal_error",
             },
         }
-        state = result.state.value
+        state = result.canonical_state.value
         if state not in allowed_reasons:
             raise RuntimeError(
                 f"Registro JSONL Rust incompatible: state {state!r} "
@@ -245,8 +244,7 @@ class RustScannerBridge:
             )
         if result.reason.value not in allowed_reasons[state]:
             raise RuntimeError(
-                "Registro JSONL Rust incompatible: reason no es coherente "
-                "con state."
+                "Registro JSONL Rust incompatible: reason no es coherente " "con state."
             )
         if state in {"open", "closed"} and result.host_state.value != "up":
             raise RuntimeError(
@@ -302,7 +300,7 @@ class RustScannerBridge:
         effective_workers = min(512, request_contract.workers, len(normalized_ports))
 
         event_stream = None
-        popen_kwargs: Dict[str, object] = {}
+        popen_kwargs: Dict[str, Any] = {}
         if event_callback is not None:
             event_stream = NativeEventStream(
                 callback=event_callback,

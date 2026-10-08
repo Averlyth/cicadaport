@@ -69,6 +69,29 @@ Python distribution versions use the equivalent PEP 440 spelling.
   banner collection; no raw, discovery or vulnerability capabilities were
   introduced.
 
+## [3.0.0-rc.3] - Unreleased
+
+### Changed
+
+- Reconciled the TASK 8 dependency backlog, including immutable
+  `actions/attest` pins and signed supply-chain attestations.
+- Normalized Python formatting and resolved all full-source Mypy and
+  Flake8 findings for the supported development baseline.
+- Enforced an 82% minimum Python source coverage floor and dedicated
+  CI quality gates across the supported release matrix.
+
+### Fixed
+
+- Closed six SQLite test connections that otherwise raised Python 3.13
+  resource warnings and tightened the dedicated resource check.
+
+### Validation
+
+- Revalidates TASK 6 readiness, persistence, recovery, cancellation and
+  bounded-resource synthetic soak, plus wheel/sdist installation.
+- RC3 is source-prepared; the tag and public release require separate
+  authorization after successful candidate and enterprise validation.
+
 ## [3.0.0-rc.2] - Unreleased
 
 ### Added

@@ -1,7 +1,7 @@
 import socket
 import unittest
 from unittest.mock import patch, MagicMock
-from src.scanner import PortScanner, ScanResult
+from src.scanner import PortScanner
 from src.network import NetworkUtils
 
 

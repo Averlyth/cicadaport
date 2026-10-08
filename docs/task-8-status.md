@@ -13,7 +13,7 @@ TASK_8_CONTRACT_VERSION=1.0-CANDIDATE
 TASK_8_BASE=b1c963f93cb21a2e3b06900451d96e5df752f0b3
 TASK_8_BRANCH=feat/task-8-mvp-3-stable-productization
 
-CURRENT_SOURCE_VERSION=3.0.0-rc.2
+CURRENT_SOURCE_VERSION=3.0.0-rc.3
 CURRENT_PUBLIC_RELEASE=v3.0.0-rc.1
 PROPOSED_FINAL_RC=v3.0.0-rc.3
 TARGET_STABLE_RELEASE=v3.0.0
@@ -29,7 +29,7 @@ SUBTASK_8_0_POST_MERGE_CI_ATTEMPT_1=CANCELLED
 SUBTASK_8_0_POST_MERGE_CI_ATTEMPT_2=PASS
 SUBTASK_8_0_POST_MERGE_CI=PASS_AFTER_RERUN
 
-SUBTASK_8_1=IN_IMPLEMENTATION
+SUBTASK_8_1=FINAL_CONSOLIDATION_PENDING_CONSOLIDATED_PR
 SUBTASK_8_1_1=COMPLETED_CONSOLIDATED_CLOSED_FROZEN
 SUBTASK_8_1_1_SOURCE_PR=9
 SUBTASK_8_1_1_SOURCE_PR_RESOLUTION=SUPERSEDED_CLOSED_NOT_MERGED
@@ -139,21 +139,26 @@ SUBTASK_8_1_7_RUNTIME_STRESS=PASS
 SUBTASK_8_1_7_PYTHON_CONTRACT_FIX=PASS
 SUBTASK_8_1_7_RESOURCE_WARNINGS=6_DEFERRED_TO_8_2
 
-SUBTASK_8_1_8=IN_IMPLEMENTATION
+SUBTASK_8_1_8=COMPLETED_CONSOLIDATED_CLOSED_FROZEN
 SUBTASK_8_1_8_TARGET_PR=19
 SUBTASK_8_1_8_DEPENDENCY=actions/attest
 SUBTASK_8_1_8_FROM=4.2.1
 SUBTASK_8_1_8_TO=4.2.2
 SUBTASK_8_1_8_FROM_SHA=508db95dd578ae2727ebd6217d5ba78e4fbda05d
 SUBTASK_8_1_8_TO_SHA=1e69f48acb82d1966a394da916b4c1698aa569d6
-SUBTASK_8_1_8_SUPPLY_CHAIN_VALIDATION=REQUIRED
+SUBTASK_8_1_8_SUPPLY_CHAIN_VALIDATION=PASS
+SUBTASK_8_1_8_SOURCE_PR_RESOLUTION=SUPERSEDED_CLOSED_NOT_MERGED
+SUBTASK_8_1_8_PR=31
+SUBTASK_8_1_8_MERGE_COMMIT=67b900b4c378d766b8829231b3e9e930baceac71
+SUBTASK_8_1_8_POST_MERGE_CI_RUN=37698558022
+SUBTASK_8_1_8_POST_MERGE_CI=PASS
 
-SUBTASK_8_2=BLOCKED_BY_8_1
-SUBTASK_8_3=BLOCKED
-SUBTASK_8_4=BLOCKED
-SUBTASK_8_5=BLOCKED
-SUBTASK_8_6=BLOCKED
-SUBTASK_8_7=BLOCKED
+SUBTASK_8_2=LOCAL_VALIDATION_PASS_PENDING_CI
+SUBTASK_8_3=LOCAL_VALIDATION_PASS_PENDING_CI
+SUBTASK_8_4=IN_IMPLEMENTATION
+SUBTASK_8_5=IN_IMPLEMENTATION
+SUBTASK_8_6=RC3_SOURCE_PREPARATION
+SUBTASK_8_7=PENDING_RC3_REMOTE_ACCEPTANCE
 SUBTASK_8_8=BLOCKED
 SUBTASK_8_9=BLOCKED
 
@@ -553,3 +558,56 @@ corrección sea estrictamente necesaria para cumplir un contrato ya existente.
 
 Las ampliaciones funcionales se planificarán después del cierre estable de
 `v3.0.0`.
+
+## TASK 8 consolidated productization gate (PR number pending)
+
+```text
+CURRENT_ACTIVE_SOURCE_VERSION=3.0.0-rc.3
+HISTORICAL_TASK_5_6_RC2_RECORDS=PRESERVED
+SUBTASK_8_1_9=BASELINE_AUDIT_PASS_NEW_INTAKE_PENDING_TRIAGE
+ORIGINAL_DEPENDABOT_PR_19=SUPERSEDED_CLOSED_NOT_MERGED
+OPEN_DEPENDABOT_BACKLOG=5
+PR31_POST_MERGE_MAIN=67b900b4c378d766b8829231b3e9e930baceac71
+PR31_POST_MERGE_CI=37698558022_PASS
+SQLITE_RESOURCE_TESTS=53_PASS_14_SUBTESTS
+PYTEST_PY313_LOCAL=531_PASS_2_SKIPPED_72_SUBTESTS
+COVERAGE_PY313_LOCAL=82_PERCENT
+COVERAGE_CI_FLOOR=82_PERCENT_PROPOSED_PENDING_REMOTE
+BLACK_LOCAL=PASS
+FLAKE8_LOCAL=PASS
+MYPY_FULL_SOURCE_LOCAL=PASS
+TASK_6_SERVICE_RUNTIME_LOCAL=282_PASS
+SYNTHETIC_SOAK_CI=NEW_GATE_PENDING_REMOTE
+RC3_TAG=NOT_CREATED
+RC3_GITHUB_RELEASE=NOT_PUBLISHED
+ENTERPRISE_RC3_ACCEPTANCE=NOT_YET_CERTIFIED
+STABLE_GO_NO_GO=NOT_AUTHORIZED
+STABLE_RELEASE_PUBLICATION=NOT_AUTHORIZED
+```
+
+The local gates are evidence of implementation, not of RC3 remote acceptance.
+CI on the signed release candidate and independent publication authorization
+remain necessary. Historical RC2 validators and governance records remain
+valid only for their original frozen candidate and baseline.
+
+## Post-baseline Dependabot intake (October 2026)
+
+The GitHub read-only inventory identifies **5 newly open Dependabot PRs** after the signed TASK 8 dependency baseline. They are not silently included in the already-tested RC3 source and are not automatically closed, merged, or permanently deferred. Individual risk and release impact remain to be classified before stable GO/NO-GO.
+
+| PR | Proposed dependency change | Decision |
+| --- | --- | --- |
+| #32 | build(deps): bump tokio from 1.53.1 to 1.53.2 in /rust-core | OPEN — requires classification |
+| #33 | build(deps): bump wheel from 0.47.0 to 0.48.0 | OPEN — requires classification |
+| #34 | build(deps-dev): bump setuptools from 83.0.0 to 84.0.0 | OPEN — requires classification |
+| #35 | build(deps-dev): update black requirement from <27,>=25 to >=26.10.0,<27 | OPEN — requires classification |
+| #36 | build(deps): bump build from 1.5.0 to 1.6.1 | OPEN — requires classification |
+
+Security review requirement: PR #33 (wheel 0.47.0 → 0.48.0) includes the upstream `wheel convert` path-traversal fix tracked as `GHSA-vgq5-9859-3mmw`. Determine toolchain applicability and any vulnerability scanner findings; do not assert safety without evidence. The RC3 candidate may be prepared and tested in parallel, but no stable GO decision is permitted while this review is unresolved.
+
+```text
+POST_BASELINE_DEPENDABOT_OPEN_COUNT=5
+POST_BASELINE_DEPENDABOT_OPEN_PRS=32,33,34,35,36
+POST_BASELINE_DEPENDABOT_CLASSIFICATION=PENDING_SECURITY_AND_COMPATIBILITY_REVIEW
+WHEEL_GHSA_VGQ5_9859_3MMW=REVIEW_REQUIRED
+FINAL_STABLE_GO_NO_GO=BLOCKED_PENDING_RELEASE_EVIDENCE
+```

@@ -45,8 +45,8 @@ normalize_sdist() (
   normalized=""
 )
 
-[[ "$(uname -s)" == "Linux" ]] || { echo "RC2 is built only on Linux." >&2; exit 1; }
-case "$(uname -m)" in x86_64|amd64) ;; *) echo "RC2 is built only on x86_64." >&2; exit 1 ;; esac
+[[ "$(uname -s)" == "Linux" ]] || { echo "RC3 is built only on Linux." >&2; exit 1; }
+case "$(uname -m)" in x86_64|amd64) ;; *) echo "RC3 is built only on x86_64." >&2; exit 1 ;; esac
 
 test -z "$(git diff --name-only)" || {
   echo "Release build refuses unstaged tracked changes." >&2

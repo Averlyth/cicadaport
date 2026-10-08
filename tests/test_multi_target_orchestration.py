@@ -170,8 +170,7 @@ class TestMultiTargetOrchestration(unittest.TestCase):
             )
 
             report_paths = [
-                target_outcome.output_path
-                for target_outcome in outcome.outcomes
+                target_outcome.output_path for target_outcome in outcome.outcomes
             ]
             self.assertEqual(len(set(report_paths)), 4)
             self.assertTrue(all(path.is_file() for path in report_paths))
@@ -195,10 +194,7 @@ class TestMultiTargetOrchestration(unittest.TestCase):
         self.assertEqual(events[-1].kind, ScanEventType.BATCH_COMPLETE)
         self.assertEqual(events[-1].progress, 100.0)
         self.assertEqual(
-            sum(
-                event.kind == ScanEventType.TARGET_COMPLETE
-                for event in events
-            ),
+            sum(event.kind == ScanEventType.TARGET_COMPLETE for event in events),
             4,
         )
 

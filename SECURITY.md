@@ -6,16 +6,16 @@ Every expanded target, IP address, hostname, range, CIDR entry, and target-file 
 
 ## Supported Versions
 
-The source tree currently identifies CicadaPort as `3.0.0-rc.2` (`3.0.0rc2` in Python package metadata).
+The source tree currently identifies CicadaPort as `3.0.0-rc.3` (`3.0.0rc3` in Python package metadata).
 
-`3.0.0-rc.2` is a source-level release candidate and is not currently a published GitHub Release.
+`3.0.0-rc.3` is a source-level release candidate and is not currently a published GitHub Release.
 
 The latest published prerelease is `v3.0.0-rc.1`.
 
 | Reference | Security state | Distribution state |
 | --- | --- | --- |
 | `main` | Current development | Source repository |
-| `3.0.0-rc.2` | Current release candidate | Not published |
+| `3.0.0-rc.3` | Current release candidate | Not published |
 | `v3.0.0-rc.1` | Latest published prerelease | Published |
 | Earlier or unmaintained versions | Not maintained | Unsupported |
 

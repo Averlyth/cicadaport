@@ -76,3 +76,34 @@ dependency changes are not yet integrated into `main`. No RC3 tag or artifact
 publication is authorized. A future documentation commit or other change
 creates a *new* source SHA and requires its own relevant quality, release and
 remote acceptance evidence before any protected merge or release decision.
+
+## Stage R — Post-PR38 source and publication boundary
+
+The subsequent consolidated PR
+[#38](https://github.com/Averlyth/cicadaport/pull/38)
+was merged into `main` as signed commit
+`b57a3f011f88fe917323a2eb8c9d12c7fcedaeee`.
+
+Postmerge CI
+[37850121564](https://github.com/Averlyth/cicadaport/actions/runs/37850121564)
+passed all 28 jobs. The exact-main workflow successfully built
+RC3 release-candidate artifacts and verified signed provenance,
+SBOM attestations and delivery integrity.
+
+Stage Q subsequently closed the original Dependabot PRs #32–#36
+as superseded without individual merge. Their branch references
+were restored at exact original SHAs and independently verified.
+
+The current source version is `3.0.0-rc.3`, while the latest
+public GitHub Release remains `v3.0.0-rc.1`.
+The existence of CI artifacts does not constitute publication.
+
+Native GitHub security-alert coverage remains unverified.
+The synthetic CI soak does not establish production endurance.
+
+Final SUBTASK 8.7 acceptance, any independent RC3 publication
+gate, stable GO/NO-GO and stable publication remain subject to
+their separate evidence and authorization requirements.
+
+Earlier Stage G and Stage L statements are historical snapshots;
+they are not rewritten or retrospectively represented as PASS.

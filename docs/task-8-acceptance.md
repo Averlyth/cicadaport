@@ -1,8 +1,12 @@
 # TASK 8 — Enterprise acceptance and GO/NO-GO evidence ledger
 
-**State:** candidate definition; no publication authorized.
+**Evidence cut-off (2026-10-08, Stage G precommit):** Pending commit, CI and publication statements describe the state at evidence capture. Later results must be recorded separately without retroactively changing this snapshot.
 
-## Local implementation evidence
+**State:** PR #37 source CI and main integration verified; dependency
+reconciliation is locally validated and not yet committed.
+RC3 tagging/publication and stable release are not authorized.
+
+## Historical local implementation evidence (pre-PR37 snapshot)
 
 - Python 3.13: 531 passed, 2 skipped, 72 subtests; 82% coverage.
 - Resource hygiene: 53 tests, 14 subtests; no SQLite warning reproduced.
@@ -12,21 +16,21 @@
   `67b900b4c378d766b8829231b3e9e930baceac71` with post-merge CI
   `37698558022` successful.
 
-## RC3-specific acceptance — pending remote evidence
+## RC3 source acceptance — PR37 remote CI verified, publication pending
 
-- [ ] Signed implementation commit and all premerge CI jobs successful.
-- [ ] Python 3.10–3.13 on Ubuntu 22.04/24.04 with coverage floor.
-- [ ] Black/Flake8/Mypy/resource-warning gates.
-- [ ] Rust fmt, Clippy, tests and release build.
-- [ ] Go formatting, vet, race tests and build.
-- [ ] ShellCheck, Gitleaks, Bandit and dependency audits.
-- [ ] Release-lock, action SHA pins and reproducible wheel/sdist build.
-- [ ] Installed-artifact/CLI/TUI smoke on every supported target.
-- [ ] Configuration, health/readiness, session recovery and cancellation.
-- [ ] Bounded-resource synthetic soak in ten independent repetitions.
-- [ ] SLSA provenance and CycloneDX SBOM signed with OIDC on `push`.
-- [ ] `gh attestation verify` and delivery hash checks on exact commit.
-- [ ] Protected merge and exact `main` post-merge CI pass.
+- [x] Signed implementation commit and all premerge CI jobs successful.
+- [x] Python 3.10–3.13 on Ubuntu 22.04/24.04 with coverage floor.
+- [x] Black/Flake8/Mypy/resource-warning gates.
+- [x] Rust fmt, Clippy, tests and release build.
+- [x] Go formatting, vet, race tests and build.
+- [x] ShellCheck, Gitleaks, Bandit and dependency audits.
+- [x] Release-lock, action SHA pins and reproducible wheel/sdist build.
+- [x] Installed-artifact/CLI/TUI smoke on every supported target.
+- [x] Configuration, health/readiness, session recovery and cancellation.
+- [x] Bounded-resource synthetic soak in ten independent repetitions.
+- [x] SLSA provenance and CycloneDX SBOM signed with OIDC on `push`.
+- [x] `gh attestation verify` and delivery hash checks on exact commit.
+- [x] Protected merge and exact `main` post-merge CI pass.
 - [ ] Independent RC3 tag / prerelease authorization and publication.
 - [ ] Review of outstanding security/service blockers before stable GO.
 
@@ -37,3 +41,48 @@ explicitly authorizes publication.
 ## New Dependabot proposals opened after the baseline
 
 At RC3 source preparation, GitHub reports 5 new open proposals (PRs #32, #33, #34, #35, #36). They are **not** part of the previously closed initial dependency backlog. A separate security, affected-code-path and compatibility assessment must precede final stable GO/NO-GO, especially for wheel advisory `GHSA-vgq5-9859-3mmw`. RC3 publication remains unapproved.
+
+
+## Stage G: reconciled PR37 source and local security validation
+
+PR #37 (signed implementation commit `5eb2ebfaaa4f701871b787a1c1420863b03cb36c`)
+was merged into `main` as `c27d13a0e7643f1ee6cc6fd4a20e3dce14643176`.
+Premerge push CI `37788101220`, pull-request CI `37788678813` and
+postmerge main CI `37813550182` passed; the last run completed 28/28 jobs,
+including the push-only verification of artifact signatures and provenance.
+Local GPG verification of the GitHub merge signature succeeded with the
+explicitly checked official web-flow public key fingerprint.
+
+The subsequent security update is not yet committed or present in `main`.
+Its proposed direct source changes are `tokio 1.53.2`, `wheel 0.48.0`,
+`setuptools 84.0.0` build compatibility, `black >=26.10.0,<27`, and
+`build 1.6.1`. The regenerated release lock also changes 19 transitive
+versions (22 version changes total). `filelock` moves from 3.32.2 to 4.0.12;
+its release-toolchain behavior still requires exact-commit package validation.
+
+Local Stage D: pinned source changes and generated locks validated. Stage E:
+16/16 source-quality, Python, Rust, Go, shell and structural checks passed.
+Stage F: hash-locked Python installation, `pip check`, `pip-audit --strict`,
+RustSec `cargo audit`, `govulncheck v1.1.4` and Python build dependency
+specifier checks passed. Scanners did not report known vulnerabilities.
+These observations are local and do **not** certify the modified candidate
+against remote CI or artifact reproducibility.
+
+```text
+PR37_SOURCE_ACCEPTANCE=PASS
+PR37_POSTMERGE_MAIN_CI=37813550182_PASS_28_OF_28
+POST_BASELINE_DEPENDENCY_INTAKE=LOCALLY_RECONCILED_UNCOMMITTED
+POST_BASELINE_DEPENDENCY_RELEASE_LOCK_DELTAS=22
+DEPENDENCY_LOCAL_SECURITY_CHECKS=PASS
+DEPENDENCY_REMOTE_CI=PENDING_COMMIT_AND_PR
+DEPENDENCY_WHEEL_SDIST_REPRODUCIBILITY=PENDING_EXACT_COMMIT
+DEPENDABOT_PRS_32_TO_36=OPEN_PENDING_SOURCE_PR_RESOLUTION
+RC3_TAG=NOT_CREATED
+RC3_PUBLICATION=NOT_AUTHORIZED
+STABLE_GO_NO_GO=NOT_EXECUTED
+STABLE_PUBLICATION=NOT_AUTHORIZED
+```
+
+The PR37 source-level checklist is complete except the independent
+publication and final stable security/operational review decisions above.
+Those decisions must not be inferred from local Stage D–F results.

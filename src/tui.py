@@ -33,7 +33,6 @@ from src.orchestrator import (
 from src.scanner import ScanResult
 from src.session_tui import SessionTuiController, SessionTuiRequest
 
-
 TuiRequest = ScanRequest | ScanBatchRequest | SessionTuiRequest
 TuiOutcome = ScanOutcome | ScanBatchOutcome
 
@@ -288,14 +287,11 @@ class CicadaPortApp(App[None]):
         self._checkpoint_sequence = 0
         self._persisted_session_status = (
             "resuming"
-            if isinstance(request, SessionTuiRequest)
-            and request.prepared.resume
+            if isinstance(request, SessionTuiRequest) and request.prepared.resume
             else "created"
         )
         self._session_path = (
-            str(request.session_dir)
-            if isinstance(request, SessionTuiRequest)
-            else "-"
+            str(request.session_dir) if isinstance(request, SessionTuiRequest) else "-"
         )
 
     def compose(self) -> ComposeResult:
@@ -303,8 +299,7 @@ class CicadaPortApp(App[None]):
         with Horizontal(id="top-row"):
             with Vertical(classes="panel", id="activity-panel"):
                 yield Static(
-                    "[bold #8bdcff]01  TELEMETRY[/] "
-                    "[#4d7189]/ LIVE SCAN SIGNAL[/]",
+                    "[bold #8bdcff]01  TELEMETRY[/] " "[#4d7189]/ LIVE SCAN SIGNAL[/]",
                     classes="panel-title",
                 )
                 yield Static(id="activity-signals")
@@ -316,16 +311,14 @@ class CicadaPortApp(App[None]):
                 yield Static(id="activity-progress")
             with Vertical(classes="panel", id="session-panel"):
                 yield Static(
-                    "[bold #8bdcff]02  EXECUTION[/] "
-                    "[#4d7189]/ SESSION PLAN[/]",
+                    "[bold #8bdcff]02  EXECUTION[/] " "[#4d7189]/ SESSION PLAN[/]",
                     classes="panel-title",
                 )
                 yield Static(classes="panel-body", id="session")
         with Horizontal(id="middle-row"):
             with Vertical(classes="panel", id="findings-panel"):
                 yield Static(
-                    "[bold #8bdcff]03  ENDPOINTS[/] "
-                    "[#4d7189]/ OPEN SERVICES[/]",
+                    "[bold #8bdcff]03  ENDPOINTS[/] " "[#4d7189]/ OPEN SERVICES[/]",
                     classes="panel-title",
                 )
                 yield RichLog(
@@ -338,8 +331,7 @@ class CicadaPortApp(App[None]):
                 )
             with Vertical(classes="panel", id="feed-panel"):
                 yield Static(
-                    "[bold #8bdcff]04  EVENT STREAM[/] "
-                    "[#4d7189]/ ENGINE OUTPUT[/]",
+                    "[bold #8bdcff]04  EVENT STREAM[/] " "[#4d7189]/ ENGINE OUTPUT[/]",
                     classes="panel-title",
                 )
                 yield RichLog(
@@ -352,8 +344,7 @@ class CicadaPortApp(App[None]):
                 )
         with Vertical(classes="panel", id="evidence-panel"):
             yield Static(
-                "[bold #8bdcff]05  EVIDENCE[/] "
-                "[#4d7189]/ SERVICE FINGERPRINT[/]",
+                "[bold #8bdcff]05  EVIDENCE[/] " "[#4d7189]/ SERVICE FINGERPRINT[/]",
                 classes="panel-title",
             )
             yield Static(classes="panel-body", id="evidence")
@@ -408,9 +399,7 @@ class CicadaPortApp(App[None]):
             "produced by the selected engine.[/]"
         )
         repeat_label = (
-            "RESUME"
-            if isinstance(self._request, SessionTuiRequest)
-            else "REPEAT"
+            "RESUME" if isinstance(self._request, SessionTuiRequest) else "REPEAT"
         )
         self.query_one("#keybar", Static).update(
             "[#38bdf8]F1[/] CONTEXT   "
@@ -488,10 +477,7 @@ class CicadaPortApp(App[None]):
         minutes, remaining_seconds = divmod(normalized, 60.0)
         hours, remaining_minutes = divmod(int(minutes), 60)
         if hours:
-            return (
-                f"{hours:02d}:{remaining_minutes:02d}:"
-                f"{remaining_seconds:04.1f}"
-            )
+            return f"{hours:02d}:{remaining_minutes:02d}:" f"{remaining_seconds:04.1f}"
         return f"{remaining_minutes:02d}:{remaining_seconds:04.1f}"
 
     @staticmethod
@@ -683,8 +669,7 @@ class CicadaPortApp(App[None]):
             "#session",
         )
         if any(
-            self.query_one_optional(selector) is None
-            for selector in required_widgets
+            self.query_one_optional(selector) is None for selector in required_widgets
         ):
             return
 
@@ -957,9 +942,7 @@ class CicadaPortApp(App[None]):
     ) -> None:
         self._last_result = result
         banner = escape(self._clean_field(result.banner or "not captured yet", 300))
-        target_value = escape(
-            self._clean_field(target or result.target or "-", 72)
-        )
+        target_value = escape(self._clean_field(target or result.target or "-", 72))
         address_value = escape(
             self._clean_field(resolved_host or result.address or "-", 72)
         )
@@ -978,9 +961,7 @@ class CicadaPortApp(App[None]):
 
     def _render_final_findings(self, outcome: ScanOutcome) -> None:
         open_results = [
-            result
-            for result in outcome.results
-            if result.state is PortState.OPEN
+            result for result in outcome.results if result.state is PortState.OPEN
         ]
         self._render_findings_header()
         if not open_results:
@@ -1003,8 +984,7 @@ class CicadaPortApp(App[None]):
                 f"{escape(self._last_result.service or 'unknown')}[/]"
             )
         self.query_one("#evidence", Static).update(
-            endpoint
-            + "   [#55758d]OPEN[/]  [bold #2dd4bf]"
+            endpoint + "   [#55758d]OPEN[/]  [bold #2dd4bf]"
             f"{outcome.statistics['open_ports']}[/]   "
             "[#55758d]CLOSED[/]  "
             f"[#cfdeec]{outcome.statistics['closed_ports']}[/]   "
@@ -1034,9 +1014,7 @@ class CicadaPortApp(App[None]):
 
         stats = outcome.statistics
         latest_report = (
-            str(outcome.outcomes[-1].output_path)
-            if outcome.outcomes
-            else "none"
+            str(outcome.outcomes[-1].output_path) if outcome.outcomes else "none"
         )
         self.query_one("#evidence", Static).update(
             "[#55758d]BATCH RESULT[/]  "
@@ -1063,13 +1041,9 @@ class CicadaPortApp(App[None]):
         if event.data.get("session_id"):
             self._session_id = str(event.data["session_id"])
         if event.data.get("checkpoint_sequence") is not None:
-            self._checkpoint_sequence = int(
-                event.data["checkpoint_sequence"]
-            )
+            self._checkpoint_sequence = int(event.data["checkpoint_sequence"])
         if event.data.get("session_status"):
-            self._persisted_session_status = str(
-                event.data["session_status"]
-            )
+            self._persisted_session_status = str(event.data["session_status"])
         if event.data.get("session_dir"):
             self._session_path = str(event.data["session_dir"])
 
@@ -1098,10 +1072,11 @@ class CicadaPortApp(App[None]):
                 self._latency_samples.append(
                     max(0.0, event.result.response_time * 1000.0)
                 )
-                self._state_samples.append(event.result.state)
-                if event.result.state in self.FILTERED_STATES:
+                state = event.result.canonical_state
+                self._state_samples.append(state)
+                if state in self.FILTERED_STATES:
                     self._filtered_ports += 1
-                elif event.result.state is PortState.CLOSED:
+                elif state is PortState.CLOSED:
                     self._closed_ports += 1
             self._refresh_activity()
             return
@@ -1138,8 +1113,7 @@ class CicadaPortApp(App[None]):
             self._write_event(
                 "OPEN",
                 (
-                    context
-                    + f"{event.result.port}/{event.result.protocol} "
+                    context + f"{event.result.port}/{event.result.protocol} "
                     f"{event.result.service or 'unknown'} "
                     f"rtt={event.result.response_time * 1000:.2f}ms"
                 ),
@@ -1205,9 +1179,7 @@ class CicadaPortApp(App[None]):
             self._last_outcome = outcome
             stats = outcome.statistics
             self._phase = (
-                "failed"
-                if event.data.get("session_status") == "failed"
-                else "complete"
+                "failed" if event.data.get("session_status") == "failed" else "complete"
             )
             self._progress = 100.0
             self._requested_targets = stats["requested_targets"]

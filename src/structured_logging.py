@@ -14,7 +14,6 @@ from typing import Any, Callable, Mapping, Sequence
 
 from src.security_values import ProtectedValue, redact_text
 
-
 CONTRACT = "HRML-CICADAPORT-6.3-001"
 CONTRACT_VERSION = 1
 LOG_SCHEMA = "cicadaport-log-event-v1"
@@ -34,18 +33,12 @@ _CORRELATION_PATTERN = re.compile(r"^[A-Za-z0-9._:-]{1,64}$")
 _FORBIDDEN_FIELD_NAME = re.compile(
     r"(?i)(secret|token|password|passwd|credential|api[_-]?key|private[_-]?key)"
 )
-_EMAIL_PATTERN = re.compile(
-    r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"
-)
+_EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 _HOME_PATTERN = re.compile(r"/home/[^/\s]+/")
-_URL_CREDENTIAL_PATTERN = re.compile(
-    r"(?i)(https?://)[^/\s:@]+:[^/\s@]+@"
-)
+_URL_CREDENTIAL_PATTERN = re.compile(r"(?i)(https?://)[^/\s:@]+:[^/\s@]+@")
 _CONTROL_PATTERN = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
 _IP_TOKEN_PATTERN = re.compile(
-    r"(?<![0-9A-Fa-f:.])"
-    r"(?:[0-9A-Fa-f:.]{2,})"
-    r"(?![0-9A-Fa-f:.])"
+    r"(?<![0-9A-Fa-f:.])" r"(?:[0-9A-Fa-f:.]{2,})" r"(?![0-9A-Fa-f:.])"
 )
 
 
@@ -156,10 +149,7 @@ class StructuredEvent:
     ) -> StructuredEvent:
         if not isinstance(severity, LogSeverity):
             raise LogEventError("severity debe ser LogSeverity.")
-        if (
-            not isinstance(event_name, str)
-            or not _EVENT_PATTERN.fullmatch(event_name)
-        ):
+        if not isinstance(event_name, str) or not _EVENT_PATTERN.fullmatch(event_name):
             raise LogEventError("event_name fuera del contrato.")
         if correlation_id is not None and (
             not isinstance(correlation_id, str)

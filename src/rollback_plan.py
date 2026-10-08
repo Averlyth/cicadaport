@@ -26,9 +26,7 @@ def build_rollback_plan(
     """Build a model-only rollback plan without touching an installation."""
 
     if not isinstance(previous_manifests, ArtifactManifestSet):
-        raise TypeError(
-            "previous_manifests must be an ArtifactManifestSet"
-        )
+        raise TypeError("previous_manifests must be an ArtifactManifestSet")
     if not isinstance(backup, BackupEvidence):
         raise TypeError("backup must be BackupEvidence")
 
@@ -44,10 +42,7 @@ def build_rollback_plan(
         raise ValueError("rollback target must differ from current version")
     if backup.version != previous_manifests.version:
         raise ValueError("backup version must match the rollback target")
-    manifest_hashes = {
-        manifest.sha256
-        for manifest in previous_manifests.manifests
-    }
+    manifest_hashes = {manifest.sha256 for manifest in previous_manifests.manifests}
     if backup.sha256 not in manifest_hashes:
         raise ValueError("backup hash is not represented by target evidence")
 

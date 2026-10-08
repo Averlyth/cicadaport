@@ -18,7 +18,7 @@ import shutil
 import sqlite3
 import stat
 import threading
-from typing import Callable, Mapping
+from typing import Any, Callable, Mapping
 
 from src.contracts import TargetIdentity
 from src.session import (
@@ -48,7 +48,6 @@ from src.secure_artifacts import (
     PRIVATE_FILE_MODE,
     SecureArtifactWriter,
 )
-
 
 SESSION_STORE_VERSION = 2
 SESSION_DATABASE_NAME = "session-v2.sqlite3"
@@ -88,13 +87,18 @@ class SessionStoreV2IntegrityError(SessionCheckpointIntegrityError):
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
+
 def _validated_utc_timestamp(value: str, *, previous: str | None = None) -> str:
     if not isinstance(value, str) or not value.endswith("Z"):
-        raise SessionStoreV2Error("La marca temporal incremental debe ser UTC con sufijo Z.")
+        raise SessionStoreV2Error(
+            "La marca temporal incremental debe ser UTC con sufijo Z."
+        )
     try:
         parsed = datetime.fromisoformat(value[:-1] + "+00:00")
     except ValueError as error:
-        raise SessionStoreV2Error("La marca temporal incremental no es ISO-8601 válida.") from error
+        raise SessionStoreV2Error(
+            "La marca temporal incremental no es ISO-8601 válida."
+        ) from error
     if parsed.tzinfo is None or parsed.utcoffset() != timezone.utc.utcoffset(parsed):
         raise SessionStoreV2Error("La marca temporal incremental debe estar en UTC.")
     if previous is not None:
@@ -104,12 +108,16 @@ def _validated_utc_timestamp(value: str, *, previous: str | None = None) -> str:
             raise SessionStoreV2IntegrityError(
                 "La marca temporal persistida no es ISO-8601 UTC válida."
             ) from error
-        if not previous.endswith("Z") or previous_parsed.utcoffset() != timezone.utc.utcoffset(previous_parsed):
+        if not previous.endswith(
+            "Z"
+        ) or previous_parsed.utcoffset() != timezone.utc.utcoffset(previous_parsed):
             raise SessionStoreV2IntegrityError(
                 "La marca temporal persistida no está expresada en UTC."
             )
         if parsed < previous_parsed:
-            raise SessionStoreV2Error("La marca temporal incremental no puede retroceder.")
+            raise SessionStoreV2Error(
+                "La marca temporal incremental no puede retroceder."
+            )
     return value
 
 
@@ -217,11 +225,17 @@ class SessionStoreV2:
             raise SessionStoreV2Error("La base de sesiones no puede ser un symlink.")
         if path.exists():
             if not path.is_file():
-                raise SessionStoreV2Error("La base de sesiones debe ser un archivo regular.")
+                raise SessionStoreV2Error(
+                    "La base de sesiones debe ser un archivo regular."
+                )
             if hasattr(os, "getuid") and path.stat().st_uid != os.getuid():
-                raise SessionStoreV2Error("La base de sesiones pertenece a otro usuario.")
+                raise SessionStoreV2Error(
+                    "La base de sesiones pertenece a otro usuario."
+                )
             if path.stat().st_size > MAX_DATABASE_BYTES:
-                raise SessionStoreV2Error("La base de sesiones excede el límite autorizado.")
+                raise SessionStoreV2Error(
+                    "La base de sesiones excede el límite autorizado."
+                )
             if path.stat().st_size:
                 with path.open("rb") as stream:
                     header = stream.read(16)
@@ -293,8 +307,7 @@ class SessionStoreV2:
                 connection.execute("PRAGMA wal_autocheckpoint=1000")
                 connection.execute(f"PRAGMA application_id={SQLITE_APPLICATION_ID}")
                 connection.execute(f"PRAGMA user_version={SESSION_STORE_VERSION}")
-                connection.executescript(
-                    """
+                connection.executescript("""
                     BEGIN IMMEDIATE;
                     CREATE TABLE IF NOT EXISTS metadata (
                         key TEXT PRIMARY KEY,
@@ -399,8 +412,7 @@ class SessionStoreV2:
                     INSERT OR REPLACE INTO metadata(key, value)
                         VALUES('durability_profile', '%s');
                     COMMIT;
-                    """ % self.durability_profile
-                )
+                    """ % self.durability_profile)
                 effective_sync = int(
                     connection.execute("PRAGMA synchronous").fetchone()[0]
                 )
@@ -625,7 +637,8 @@ class SessionStoreV2:
                                 len(item.completed_results)
                                 for item in checkpoint.endpoints
                             ),
-                            total_ports=len(checkpoint.plan.ports) * len(checkpoint.endpoints),
+                            total_ports=len(checkpoint.plan.ports)
+                            * len(checkpoint.endpoints),
                             status=checkpoint.status.value,
                         )
 
@@ -908,8 +921,12 @@ class SessionStoreV2:
                         ) VALUES(?, ?, ?, ?, ?, ?)
                         """,
                         (
-                            state["session_id"], endpoint_id, protocol, port,
-                            document, digest,
+                            state["session_id"],
+                            endpoint_id,
+                            protocol,
+                            port,
+                            document,
+                            digest,
                         ),
                     )
                     digests.append(digest)
@@ -940,8 +957,11 @@ class SessionStoreV2:
                     ) VALUES(?, ?, ?, ?, ?)
                     """,
                     (
-                        state["session_id"], next_sequence, status,
-                        state_digest, _utc_now(),
+                        state["session_id"],
+                        next_sequence,
+                        status,
+                        state_digest,
+                        _utc_now(),
                     ),
                 )
                 completed = int(
@@ -971,8 +991,11 @@ class SessionStoreV2:
                     total_ports=len(plan.ports) * len(plan.resolved_targets),
                     status=status,
                 )
-            except (SessionStoreV2Error, SessionStoreV2IntegrityError,
-                    SessionCheckpointNotFoundError):
+            except (
+                SessionStoreV2Error,
+                SessionStoreV2IntegrityError,
+                SessionCheckpointNotFoundError,
+            ):
                 try:
                     connection.execute("ROLLBACK")
                 except sqlite3.DatabaseError:
@@ -1067,7 +1090,11 @@ class SessionStoreV2:
                     WHERE session_id=? AND endpoint_id=? AND protocol='tcp' AND port=?
                     """,
                     (
-                        document, digest, state["session_id"], endpoint_id, int(port),
+                        document,
+                        digest,
+                        state["session_id"],
+                        endpoint_id,
+                        int(port),
                     ),
                 )
                 connection.execute(
@@ -1131,15 +1158,21 @@ class SessionStoreV2:
                     total_ports=len(plan.ports) * len(plan.resolved_targets),
                     status="running",
                 )
-            except (SessionStoreV2Error, SessionStoreV2IntegrityError,
-                    SessionCheckpointNotFoundError):
+            except (
+                SessionStoreV2Error,
+                SessionStoreV2IntegrityError,
+                SessionCheckpointNotFoundError,
+            ):
                 try:
                     connection.execute("ROLLBACK")
                 except sqlite3.DatabaseError:
                     pass
                 raise
-            except (sqlite3.DatabaseError, SessionContractError,
-                    json.JSONDecodeError) as error:
+            except (
+                sqlite3.DatabaseError,
+                SessionContractError,
+                json.JSONDecodeError,
+            ) as error:
                 try:
                     connection.execute("ROLLBACK")
                 except sqlite3.DatabaseError:
@@ -1178,7 +1211,7 @@ class SessionStoreV2:
                         """,
                         (state["session_id"], row["endpoint_id"]),
                     ).fetchall()
-                    results: list[Mapping[str, Any]] = []
+                    results: list[dict[str, Any]] = []
                     for result_row in result_rows:
                         document = str(result_row["result_json"])
                         digest = hashlib.sha256(document.encode("utf-8")).hexdigest()
@@ -1208,14 +1241,14 @@ class SessionStoreV2:
                     )
                     endpoints.append(
                         EndpointProgress(
-                            identity={
-                                "requested": row["requested"],
-                                "address": row["address"],
-                                "family": row["family"],
-                                "canonical_name": row["canonical_name"],
-                                "source": row["source"],
-                            },
-                            completed_results=results,
+                            identity=TargetIdentity(
+                                requested=row["requested"],
+                                address=row["address"],
+                                family=row["family"],
+                                canonical_name=row["canonical_name"],
+                                source=row["source"],
+                            ),
+                            completed_results=tuple(results),
                             pending_ports=pending_ports,
                             completed_banner_ports=banner_ports,
                             error=row["error"],
@@ -1228,7 +1261,9 @@ class SessionStoreV2:
                     """,
                     (state["session_id"], state["sequence"]),
                 ).fetchone()
-                if history is None or str(history["state_digest"]) != str(state["state_digest"]):
+                if history is None or str(history["state_digest"]) != str(
+                    state["state_digest"]
+                ):
                     raise SessionStoreV2IntegrityError(
                         "El estado v2 no coincide con su historial confirmado."
                     )
@@ -1236,13 +1271,15 @@ class SessionStoreV2:
                     session_id=state["session_id"],
                     plan=plan,
                     status=state["status"],
-                    endpoints=endpoints,
+                    endpoints=tuple(endpoints),
                     created_at=state["created_at"],
                     updated_at=state["updated_at"],
                     sequence=int(state["sequence"]),
                     last_error=state["last_error"],
                 )
-                digest = hashlib.sha256(checkpoint.to_json().encode("utf-8")).hexdigest()
+                digest = hashlib.sha256(
+                    checkpoint.to_json().encode("utf-8")
+                ).hexdigest()
                 if (
                     state["checkpoint_sha256"] is not None
                     and digest != state["checkpoint_sha256"]
@@ -1275,10 +1312,18 @@ class SessionStoreV2:
                 integrity_rows = [
                     str(row[0]) for row in connection.execute(f"PRAGMA {pragma}")
                 ]
-                foreign_rows = [tuple(row) for row in connection.execute("PRAGMA foreign_key_check")]
-                application_id = int(connection.execute("PRAGMA application_id").fetchone()[0])
-                user_version = int(connection.execute("PRAGMA user_version").fetchone()[0])
-                journal_mode = str(connection.execute("PRAGMA journal_mode").fetchone()[0]).lower()
+                foreign_rows = [
+                    tuple(row) for row in connection.execute("PRAGMA foreign_key_check")
+                ]
+                application_id = int(
+                    connection.execute("PRAGMA application_id").fetchone()[0]
+                )
+                user_version = int(
+                    connection.execute("PRAGMA user_version").fetchone()[0]
+                )
+                journal_mode = str(
+                    connection.execute("PRAGMA journal_mode").fetchone()[0]
+                ).lower()
                 event_digest_errors = []
                 for event_row in connection.execute(
                     "SELECT event_id, event_json, event_sha256 FROM event"
@@ -1430,17 +1475,23 @@ class SessionStoreV2:
             ],
         }
 
-    def _source_v1_manifest(self, source_root: Path) -> tuple[StorePointer, dict[str, str]]:
+    def _source_v1_manifest(
+        self, source_root: Path
+    ) -> tuple[StorePointer, dict[str, str]]:
         current_path = source_root / CURRENT_POINTER_NAME
         if current_path.is_symlink() or not current_path.is_file():
-            raise SessionStoreV2IntegrityError("CURRENT.json v1 no es un archivo regular.")
+            raise SessionStoreV2IntegrityError(
+                "CURRENT.json v1 no es un archivo regular."
+            )
         current_bytes = current_path.read_bytes()
         if len(current_bytes) > MAX_POINTER_BYTES:
             raise SessionStoreV2IntegrityError("CURRENT.json v1 excede el límite.")
         try:
             pointer = StorePointer.from_json(current_bytes.decode("utf-8"))
         except (UnicodeDecodeError, SessionCheckpointIntegrityError) as error:
-            raise SessionStoreV2IntegrityError("CURRENT.json v1 no es válido.") from error
+            raise SessionStoreV2IntegrityError(
+                "CURRENT.json v1 no es válido."
+            ) from error
         files = [CURRENT_POINTER_NAME, pointer.checkpoint_file, pointer.manifest_file]
         hashes: dict[str, str] = {}
         for name in files:
@@ -1456,18 +1507,26 @@ class SessionStoreV2:
                 )
             hashes[name] = _sha256_bytes(content)
         if hashes[pointer.checkpoint_file] != pointer.checkpoint_sha256:
-            raise SessionStoreV2IntegrityError("El checkpoint fuente v1 no coincide con su hash.")
+            raise SessionStoreV2IntegrityError(
+                "El checkpoint fuente v1 no coincide con su hash."
+            )
         if hashes[pointer.manifest_file] != pointer.manifest_sha256:
-            raise SessionStoreV2IntegrityError("El manifiesto fuente v1 no coincide con su hash.")
+            raise SessionStoreV2IntegrityError(
+                "El manifiesto fuente v1 no coincide con su hash."
+            )
         return pointer, hashes
 
     @staticmethod
     def _load_v1_checkpoint(source_root: Path) -> SessionCheckpoint:
         try:
-            return __import__(
-                "src.session_runtime", fromlist=["SingleTargetCheckpointStore"]
-            ).SingleTargetCheckpointStore(source_root)._load_v1_checkpoint()
-        except Exception as single_error:
+            return (
+                __import__(
+                    "src.session_runtime", fromlist=["SingleTargetCheckpointStore"]
+                )
+                .SingleTargetCheckpointStore(source_root)
+                ._load_v1_checkpoint()
+            )
+        except Exception:
             try:
                 from src.session_batch import MultiTargetCheckpointStore
 

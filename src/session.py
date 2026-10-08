@@ -18,7 +18,6 @@ from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple
 from uuid import UUID
 
 from src.contracts import (
-    AddressFamily,
     HostState,
     PortState,
     ReasonCode,
@@ -28,7 +27,6 @@ from src.contracts import (
     TargetIdentity,
 )
 from src.scanner import ScanResult
-
 
 SCAN_PLAN_CONTRACT_VERSION = 1
 SESSION_CHECKPOINT_CONTRACT_VERSION = 1
@@ -79,9 +77,7 @@ def _require_exact_fields(
 ) -> None:
     non_string_keys = [key for key in payload if not isinstance(key, str)]
     if non_string_keys:
-        raise SessionContractError(
-            f"{record_name} contiene claves que no son cadenas."
-        )
+        raise SessionContractError(f"{record_name} contiene claves que no son cadenas.")
     received = set(payload)
     missing = set(required) - received
     unexpected = received - set(required) - set(optional)
@@ -275,6 +271,7 @@ def _normalize_session_id(value: Any) -> str:
 def _normalize_target_identity(
     value: TargetIdentity | Mapping[str, Any],
 ) -> TargetIdentity:
+    payload: Mapping[str, Any]
     if isinstance(value, TargetIdentity):
         payload = value.to_contract_dict()
     else:
@@ -438,12 +435,9 @@ def _canonicalize_port_result(
 class ScanPlan:
     """Plan inmutable y reproducible previo a cualquier actividad de red."""
 
-    requested_targets: Tuple[str, ...] | Iterable[str]
-    resolved_targets: (
-        Tuple[TargetIdentity, ...]
-        | Iterable[TargetIdentity | Mapping[str, Any]]
-    )
-    ports: Tuple[int, ...] | Iterable[int]
+    requested_targets: Tuple[str, ...]
+    resolved_targets: Tuple[TargetIdentity, ...]
+    ports: Tuple[int, ...]
     timeout_ms: int
     threads: int
     target_workers: int
@@ -491,8 +485,7 @@ class ScanPlan:
         ):
             raise SessionContractError("resolved_targets debe ser una colección.")
         resolved = tuple(
-            _normalize_target_identity(value)
-            for value in self.resolved_targets
+            _normalize_target_identity(value) for value in self.resolved_targets
         )
         if not resolved:
             raise SessionContractError(
@@ -503,8 +496,7 @@ class ScanPlan:
                 f"resolved_targets excede el límite de {MAX_SESSION_TARGETS}."
             )
         identities = {
-            (item.requested, item.address, item.family.value)
-            for item in resolved
+            (item.requested, item.address, item.family.value) for item in resolved
         }
         if len(identities) != len(resolved):
             raise SessionContractError(
@@ -560,9 +552,7 @@ class ScanPlan:
             self.report_format, "report_format", maximum=16
         ).lower()
         if report_format not in SUPPORTED_REPORT_FORMATS:
-            raise SessionContractError(
-                f"report_format no admitido: {report_format!r}."
-            )
+            raise SessionContractError(f"report_format no admitido: {report_format!r}.")
         report_dir = _require_string(self.report_dir, "report_dir", maximum=4096)
         output = _require_optional_string(self.output, "output")
         if output is not None and len(resolved) != 1:
@@ -643,10 +633,10 @@ class ScanPlan:
 class EndpointProgress:
     """Estado validado de un endpoint dentro de un checkpoint."""
 
-    identity: TargetIdentity | Mapping[str, Any]
-    completed_results: Tuple[Dict[str, Any], ...] | Iterable[Mapping[str, Any]]
-    pending_ports: Tuple[int, ...] | Iterable[int]
-    completed_banner_ports: Tuple[int, ...] | Iterable[int] = ()
+    identity: TargetIdentity
+    completed_results: Tuple[Dict[str, Any], ...]
+    pending_ports: Tuple[int, ...]
+    completed_banner_ports: Tuple[int, ...] = ()
     error: Optional[str] = None
     contract_version: int = SESSION_CHECKPOINT_CONTRACT_VERSION
 
@@ -678,9 +668,7 @@ class EndpointProgress:
             _canonicalize_port_result(payload, identity)
             for payload in self.completed_results
         )
-        completed_keys = [
-            (result["protocol"], result["port"]) for result in completed
-        ]
+        completed_keys = [(result["protocol"], result["port"]) for result in completed]
         if len(set(completed_keys)) != len(completed_keys):
             raise SessionContractError("completed_results contiene puertos duplicados.")
         completed = tuple(
@@ -739,9 +727,7 @@ class EndpointProgress:
         }
 
     @classmethod
-    def from_contract_dict(
-        cls, payload_value: Mapping[str, Any]
-    ) -> "EndpointProgress":
+    def from_contract_dict(cls, payload_value: Mapping[str, Any]) -> "EndpointProgress":
         payload = _require_mapping(payload_value, "endpoint_progress")
         _require_exact_fields(
             payload,
@@ -749,9 +735,7 @@ class EndpointProgress:
             required=cls._FIELDS,
         )
         if payload["record_type"] != "endpoint_progress":
-            raise SessionContractError(
-                "record_type debe ser 'endpoint_progress'."
-            )
+            raise SessionContractError("record_type debe ser 'endpoint_progress'.")
         return cls(
             identity=payload["identity"],
             completed_results=payload["completed_results"],
@@ -767,12 +751,9 @@ class SessionCheckpoint:
     """Snapshot estricto y versionado de una sesión reproducible."""
 
     session_id: str
-    plan: ScanPlan | Mapping[str, Any]
-    status: SessionStatus | str
-    endpoints: (
-        Tuple[EndpointProgress, ...]
-        | Iterable[EndpointProgress | Mapping[str, Any]]
-    )
+    plan: ScanPlan
+    status: SessionStatus
+    endpoints: Tuple[EndpointProgress, ...]
     created_at: str
     updated_at: str
     sequence: int = 0
@@ -813,9 +794,11 @@ class SessionCheckpoint:
         ):
             raise SessionContractError("endpoints debe ser una colección.")
         endpoints = tuple(
-            value
-            if isinstance(value, EndpointProgress)
-            else EndpointProgress.from_contract_dict(value)
+            (
+                value
+                if isinstance(value, EndpointProgress)
+                else EndpointProgress.from_contract_dict(value)
+            )
             for value in self.endpoints
         )
         if not endpoints:
@@ -852,9 +835,7 @@ class SessionCheckpoint:
         if status is SessionStatus.FAILED and last_error is None:
             raise SessionContractError("status 'failed' requiere last_error.")
         if status in {SessionStatus.CREATED, SessionStatus.COMPLETED} and last_error:
-            raise SessionContractError(
-                f"status {status.value!r} no admite last_error."
-            )
+            raise SessionContractError(f"status {status.value!r} no admite last_error.")
         if status is SessionStatus.CREATED:
             for endpoint in endpoints:
                 if (
@@ -918,9 +899,7 @@ class SessionCheckpoint:
             required=cls._FIELDS,
         )
         if payload["record_type"] != "session_checkpoint":
-            raise SessionContractError(
-                "record_type debe ser 'session_checkpoint'."
-            )
+            raise SessionContractError("record_type debe ser 'session_checkpoint'.")
         return cls(
             session_id=payload["session_id"],
             plan=payload["plan"],
@@ -946,7 +925,7 @@ class SessionManifest:
 
     session_id: str
     plan_fingerprint: str
-    status: SessionStatus | str
+    status: SessionStatus
     started_at: str
     finished_at: Optional[str]
     target_count: int
@@ -1015,9 +994,7 @@ class SessionManifest:
         successful_targets = _require_int(
             self.successful_targets, "successful_targets", minimum=0
         )
-        failed_targets = _require_int(
-            self.failed_targets, "failed_targets", minimum=0
-        )
+        failed_targets = _require_int(self.failed_targets, "failed_targets", minimum=0)
         if successful_targets + failed_targets > target_count:
             raise SessionContractError(
                 "successful_targets + failed_targets excede target_count."
@@ -1117,9 +1094,7 @@ class SessionManifest:
         return deterministic_json(self.to_contract_dict())
 
     @classmethod
-    def from_contract_dict(
-        cls, payload_value: Mapping[str, Any]
-    ) -> "SessionManifest":
+    def from_contract_dict(cls, payload_value: Mapping[str, Any]) -> "SessionManifest":
         payload = _require_mapping(payload_value, "session_manifest")
         _require_exact_fields(
             payload,
@@ -1127,9 +1102,7 @@ class SessionManifest:
             required=cls._FIELDS,
         )
         if payload["record_type"] != "session_manifest":
-            raise SessionContractError(
-                "record_type debe ser 'session_manifest'."
-            )
+            raise SessionContractError("record_type debe ser 'session_manifest'.")
         return cls(
             session_id=payload["session_id"],
             plan_fingerprint=payload["plan_fingerprint"],
@@ -1150,6 +1123,4 @@ class SessionManifest:
 
     @classmethod
     def from_json(cls, document: str) -> "SessionManifest":
-        return cls.from_contract_dict(
-            _strict_json_loads(document, "session_manifest")
-        )
+        return cls.from_contract_dict(_strict_json_loads(document, "session_manifest"))

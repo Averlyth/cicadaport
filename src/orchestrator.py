@@ -293,9 +293,7 @@ class ScanOrchestrator:
             technique=ScanTechnique.TCP_CONNECT,
             evidence=ScanEvidence(
                 reason=(
-                    ReasonCode.CONNECTION_ACCEPTED
-                    if is_open
-                    else ReasonCode.UNKNOWN
+                    ReasonCode.CONNECTION_ACCEPTED if is_open else ReasonCode.UNKNOWN
                 ),
                 source="rust",
                 detail=(
@@ -480,9 +478,7 @@ class ScanOrchestrator:
         timeout: float,
     ) -> List[ScanResult]:
         open_ports = [
-            result.port
-            for result in results
-            if result.state is PortState.OPEN
+            result.port for result in results if result.state is PortState.OPEN
         ]
         if not open_ports:
             return results
@@ -612,22 +608,15 @@ class ScanOrchestrator:
             or request.threads < 1
             or request.threads > config.MAX_THREADS
         ):
-            raise ValueError(
-                "threads debe estar entre 1 y "
-                f"{config.MAX_THREADS}."
-            )
+            raise ValueError("threads debe estar entre 1 y " f"{config.MAX_THREADS}.")
         if request.timeout <= 0:
             raise ValueError("timeout debe ser mayor a 0.")
 
         ports = self._get_ports_to_scan(request)
         scan_engine = self._resolve_scan_engine(request.engine)
-        resolved_banner_engine = self._resolve_banner_engine(
-            request.banner_engine
-        )
+        resolved_banner_engine = self._resolve_banner_engine(request.banner_engine)
         banner_engine = (
-            resolved_banner_engine
-            if request.banner_grab
-            else DISABLED_BANNER_ENGINE
+            resolved_banner_engine if request.banner_grab else DISABLED_BANNER_ENGINE
         )
         self._require_specialized_binaries(banner_grab=request.banner_grab)
         return ports, scan_engine, banner_engine
@@ -891,8 +880,7 @@ class ScanOrchestrator:
             safe_target = self._safe_filename_component(target.target)
             safe_address = self._safe_filename_component(target.address)
             base_path = report_directory / (
-                "scan_report_"
-                f"{safe_target}_{safe_address}_{timestamp}{extension}"
+                "scan_report_" f"{safe_target}_{safe_address}_{timestamp}{extension}"
             )
             output_path = base_path
             collision_number = 2
@@ -931,9 +919,7 @@ class ScanOrchestrator:
             "total_ports": sum(
                 outcome.statistics["total_ports"] for outcome in outcomes
             ),
-            "open_ports": sum(
-                outcome.statistics["open_ports"] for outcome in outcomes
-            ),
+            "open_ports": sum(outcome.statistics["open_ports"] for outcome in outcomes),
             "closed_ports": sum(
                 outcome.statistics["closed_ports"] for outcome in outcomes
             ),
@@ -957,8 +943,7 @@ class ScanOrchestrator:
             or request.target_workers > config.MAX_TARGET_WORKERS
         ):
             raise ValueError(
-                "target_workers debe estar entre 1 y "
-                f"{config.MAX_TARGET_WORKERS}."
+                "target_workers debe estar entre 1 y " f"{config.MAX_TARGET_WORKERS}."
             )
 
         parser = TargetParser(max_targets=request.max_targets)
@@ -968,16 +953,10 @@ class ScanOrchestrator:
             exclusions=request.exclusions,
         )
         if not parsed_targets:
-            raise TargetParseError(
-                "Las exclusiones eliminaron todos los objetivos."
-            )
+            raise TargetParseError("Las exclusiones eliminaron todos los objetivos.")
 
-        ports, scan_engine, banner_engine = self._prepare_request(
-            request.template
-        )
-        targets, resolution_failures = self._resolve_batch_targets(
-            parsed_targets
-        )
+        ports, scan_engine, banner_engine = self._prepare_request(request.template)
+        targets, resolution_failures = self._resolve_batch_targets(parsed_targets)
         total_units = len(targets) + len(resolution_failures)
 
         if not targets:
@@ -1017,9 +996,7 @@ class ScanOrchestrator:
         )
 
         progress_lock = threading.Lock()
-        target_progress = {
-            index: 0.0 for index in range(len(targets))
-        }
+        target_progress = {index: 0.0 for index in range(len(targets))}
         completed_before_scan = 0
 
         def global_progress() -> float:
@@ -1071,11 +1048,7 @@ class ScanOrchestrator:
                 replace(
                     event,
                     kind=event_kind,
-                    progress=(
-                        batch_progress
-                        if event.progress is not None
-                        else None
-                    ),
+                    progress=(batch_progress if event.progress is not None else None),
                     data=event_data,
                 )
             )
@@ -1089,11 +1062,10 @@ class ScanOrchestrator:
             for index, (target, target_request) in enumerate(
                 zip(targets, target_requests)
             ):
-                callback = (
-                    lambda event, index=index, target=target: (
-                        target_event_callback(index, target, event)
-                    )
-                )
+
+                def callback(event: ScanEvent, index=index, target=target) -> None:
+                    target_event_callback(index, target, event)
+
                 self._emit(
                     ScanEventType.TARGET_STARTED,
                     (
@@ -1157,14 +1129,8 @@ class ScanOrchestrator:
                 cancel_futures=self.cancel_event.is_set(),
             )
 
-        outcomes = [
-            indexed_outcomes[index]
-            for index in sorted(indexed_outcomes)
-        ]
-        scan_failures = [
-            indexed_failures[index]
-            for index in sorted(indexed_failures)
-        ]
+        outcomes = [indexed_outcomes[index] for index in sorted(indexed_outcomes)]
+        scan_failures = [indexed_failures[index] for index in sorted(indexed_failures)]
         failures = [*resolution_failures, *scan_failures]
         batch_outcome = ScanBatchOutcome(
             outcomes=outcomes,

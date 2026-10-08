@@ -8,21 +8,16 @@ library module or adding a third-party dependency.
 from __future__ import annotations
 
 import enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 
 class _FallbackStrEnum(str, enum.Enum):
-    """Python 3.10-compatible subset of :class:`enum.StrEnum`.
-
-    CicadaPort enums use explicit string values. The fallback also implements
-    the standard lower-case ``auto()`` behavior for defensive compatibility.
-    """
+    """Python 3.10-compatible subset of :class:`enum.StrEnum`."""
 
     def __new__(cls, value: str) -> "_FallbackStrEnum":
         if not isinstance(value, str):
             raise TypeError(
-                f"{cls.__name__} values must be strings, got "
-                f"{type(value).__name__}"
+                f"{cls.__name__} values must be strings, got " f"{type(value).__name__}"
             )
         member = str.__new__(cls, value)
         member._value_ = value
@@ -38,8 +33,11 @@ class _FallbackStrEnum(str, enum.Enum):
         del start, count, last_values
         return name.lower()
 
-    __str__ = str.__str__
-    __format__ = str.__format__
+    def __str__(self) -> str:
+        return str.__str__(self)
+
+    def __format__(self, format_spec: str) -> str:
+        return str.__format__(self, format_spec)
 
 
 def _select_str_enum(enum_module: object = enum) -> type[enum.Enum]:
@@ -57,6 +55,19 @@ def _select_str_enum(enum_module: object = enum) -> type[enum.Enum]:
     return candidate
 
 
-StrEnum = _select_str_enum()
+if TYPE_CHECKING:
+
+    class StrEnum(str, enum.Enum):
+        """Static type surface matching the runtime-compatible StrEnum."""
+
+        def __str__(self) -> str:
+            return str.__str__(self)
+
+        def __format__(self, format_spec: str) -> str:
+            return str.__format__(self, format_spec)
+
+else:
+    StrEnum = _select_str_enum()
+
 
 __all__ = ("StrEnum",)

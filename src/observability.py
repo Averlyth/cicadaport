@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
+from enum import Enum
 from typing import Any, Mapping
 
 from src.health import (
@@ -15,7 +16,6 @@ from src.health import (
 )
 from src.metrics import BoundedMetricsRegistry, MetricError
 from src.structured_logging import LogSeverity, SafeJsonLogger
-
 
 CONTRACT = "HRML-CICADAPORT-6.3-001"
 CONTRACT_VERSION = 1
@@ -47,7 +47,7 @@ class LocalObservability:
         self,
         status: HealthStatus,
         *,
-        reasons: tuple[str, ...] | list[str] = (),
+        reasons: tuple[str | Enum, ...] | list[str | Enum] = (),
     ) -> HealthSnapshot:
         snapshot = self.health.update(status, reasons=reasons)
         for candidate in HealthStatus:

@@ -105,10 +105,7 @@ class OperationalPaths:
     install_dir: Path
 
     def to_dict(self) -> dict[str, str]:
-        return {
-            role: str(getattr(self, role))
-            for role in PATH_ROLES
-        }
+        return {role: str(getattr(self, role)) for role in PATH_ROLES}
 
 
 @dataclass(frozen=True)
@@ -139,9 +136,7 @@ class PlatformObservation:
             "system": self.system,
             "machine": self.machine,
             "python": (
-                f"{self.python_major}."
-                f"{self.python_minor}."
-                f"{self.python_micro}"
+                f"{self.python_major}." f"{self.python_minor}." f"{self.python_micro}"
             ),
             "platform": self.platform,
         }
@@ -169,9 +164,7 @@ def _normalize_absolute_path(
     if not raw:
         raise OperationalConfigurationError(f"{label} no puede estar vacío.")
     if "\x00" in raw:
-        raise OperationalConfigurationError(
-            f"{label} contiene un byte NUL."
-        )
+        raise OperationalConfigurationError(f"{label} contiene un byte NUL.")
     if raw == "~":
         raw = str(home)
     elif raw.startswith("~/"):
@@ -204,17 +197,23 @@ def _local_defaults(environ: Mapping[str, str]) -> dict[str, str]:
     data_base = environ.get("XDG_DATA_HOME", "").strip()
     runtime_base = environ.get("XDG_RUNTIME_DIR", "").strip()
 
-    config_dir = Path(config_base) / "cicadaport" if config_base else (
-        home / ".config" / "cicadaport"
+    config_dir = (
+        Path(config_base) / "cicadaport"
+        if config_base
+        else (home / ".config" / "cicadaport")
     )
-    state_dir = Path(state_base) / "cicadaport" if state_base else (
-        home / ".local" / "state" / "cicadaport"
+    state_dir = (
+        Path(state_base) / "cicadaport"
+        if state_base
+        else (home / ".local" / "state" / "cicadaport")
     )
-    install_dir = Path(data_base) / "cicadaport" if data_base else (
-        home / ".local" / "share" / "cicadaport"
+    install_dir = (
+        Path(data_base) / "cicadaport"
+        if data_base
+        else (home / ".local" / "share" / "cicadaport")
     )
-    runtime_dir = Path(runtime_base) / "cicadaport" if runtime_base else (
-        state_dir / "runtime"
+    runtime_dir = (
+        Path(runtime_base) / "cicadaport" if runtime_base else (state_dir / "runtime")
     )
 
     return {
@@ -259,10 +258,10 @@ def resolve_operational_config(
 
     environment = dict(os.environ if environ is None else environ)
     requested_profile = (
-        profile
-        or environment.get("CICADAPORT_OPERATION_PROFILE")
-        or PROFILE_LOCAL
-    ).strip().lower()
+        (profile or environment.get("CICADAPORT_OPERATION_PROFILE") or PROFILE_LOCAL)
+        .strip()
+        .lower()
+    )
     if requested_profile not in SUPPORTED_PROFILES:
         raise OperationalConfigurationError(
             "CICADAPORT_OPERATION_PROFILE debe ser local o managed."
@@ -272,8 +271,7 @@ def resolve_operational_config(
     unknown = sorted(set(explicit) - set(PATH_ROLES))
     if unknown:
         raise OperationalConfigurationError(
-            "Overrides operacionales desconocidos: "
-            + ", ".join(unknown)
+            "Overrides operacionales desconocidos: " + ", ".join(unknown)
         )
 
     if requested_profile == PROFILE_LOCAL:
@@ -287,11 +285,17 @@ def resolve_operational_config(
         raise OperationalConfigurationError("HOME debe ser absoluto.")
 
     resolved: dict[str, Path] = {}
-    sources: dict[str, str] = {"profile": (
-        "explicit" if profile is not None else
-        "environment" if environment.get("CICADAPORT_OPERATION_PROFILE") else
-        "default"
-    )}
+    sources: dict[str, str] = {
+        "profile": (
+            "explicit"
+            if profile is not None
+            else (
+                "environment"
+                if environment.get("CICADAPORT_OPERATION_PROFILE")
+                else "default"
+            )
+        )
+    }
 
     for role in PATH_ROLES:
         environment_key = PATH_ENVIRONMENT[role]
@@ -404,14 +408,9 @@ def assess_operational_path(
     mode = stat.S_IMODE(metadata.st_mode)
     is_directory = stat.S_ISDIR(metadata.st_mode)
     owner_pass = (
-        not require_owner
-        or effective_uid is None
-        or metadata.st_uid == effective_uid
+        not require_owner or effective_uid is None or metadata.st_uid == effective_uid
     )
-    mode_pass = (
-        (mode & required_bits) == required_bits
-        and (mode & forbidden_bits) == 0
-    )
+    mode_pass = (mode & required_bits) == required_bits and (mode & forbidden_bits) == 0
     policy_pass = is_directory and owner_pass and mode_pass
 
     reasons: list[str] = []
@@ -420,9 +419,7 @@ def assess_operational_path(
     if not owner_pass:
         reasons.append("El propietario no coincide con el UID efectivo.")
     if not mode_pass:
-        reasons.append(
-            f"Modo {mode:#05o} incompatible con la política de {role}."
-        )
+        reasons.append(f"Modo {mode:#05o} incompatible con la política de {role}.")
 
     return {
         "role": role,

@@ -1,2 +1,2 @@
-# Dependencias de ejecución para CicadaPort RC2.
+# Dependencias de ejecución para CicadaPort RC3.
 textual>=0.80,<9

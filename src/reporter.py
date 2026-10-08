@@ -80,20 +80,15 @@ class ReportGenerator:
 
         for result in open_results:
             report.append(f"Puerto: {result.port}/{result.protocol.upper()}")
-            report.append(f"Estado: {result.state.value}")
+            report.append(f"Estado: {result.canonical_state.value}")
             report.append(f"Razón: {result.reason.value}")
             if result.address:
-                report.append(
-                    f"Dirección: {neutralize_text_controls(result.address)}"
-                )
+                report.append(f"Dirección: {neutralize_text_controls(result.address)}")
             report.append(f"Técnica: {result.technique.value}")
-            report.append(
-                f"Servicio: {neutralize_text_controls(result.service)}"
-            )
+            report.append(f"Servicio: {neutralize_text_controls(result.service)}")
             if result.banner:
                 report.append(
-                    "Banner: "
-                    + neutralize_text_controls(result.banner).strip()
+                    "Banner: " + neutralize_text_controls(result.banner).strip()
                 )
             report.append(f"Tiempo de respuesta: {result.response_time:.3f}s")
             report.append("-" * 40)
@@ -133,9 +128,7 @@ class ReportGenerator:
             "scan_engine": scan_engine,
             "banner_engine": banner_engine,
             "open_ports_count": len(open_results),
-            "open_ports": [
-                result.to_contract_dict() for result in open_results
-            ],
+            "open_ports": [result.to_contract_dict() for result in open_results],
         }
 
         json_content = json.dumps(report_data, indent=2, ensure_ascii=False)
@@ -200,15 +193,11 @@ class ReportGenerator:
                     ReportGenerator._neutralize_csv_cell(result.service),
                     ReportGenerator._neutralize_csv_cell(result.banner or "N/A"),
                     f"{result.response_time:.3f}",
-                    result.state.value.upper(),
+                    result.canonical_state.value.upper(),
                     result.reason.value,
                     ReportGenerator._neutralize_csv_cell(result.target),
                     result.address,
-                    (
-                        result.address_family.value
-                        if result.address_family
-                        else ""
-                    ),
+                    (result.address_family.value if result.address_family else ""),
                     result.technique.value,
                     result.contract_version,
                     scan_engine or "",
@@ -244,9 +233,7 @@ class ReportGenerator:
             Contenido HTML del reporte
         """
         open_results = ReportGenerator._get_reportable_results(results)
-        safe_target = html.escape(
-            neutralize_text_controls(target), quote=True
-        )
+        safe_target = html.escape(neutralize_text_controls(target), quote=True)
         safe_scan_engine = html.escape(
             neutralize_text_controls(scan_engine or ""), quote=True
         )
@@ -263,7 +250,7 @@ class ReportGenerator:
                 neutralize_text_controls(result.protocol).upper(),
                 quote=True,
             )
-            safe_state = html.escape(result.state.value, quote=True)
+            safe_state = html.escape(result.canonical_state.value, quote=True)
             safe_reason = html.escape(result.reason.value, quote=True)
             safe_address = html.escape(
                 neutralize_text_controls(result.address), quote=True
@@ -314,7 +301,7 @@ class ReportGenerator:
                 <p><strong>Motor de escaneo:</strong> {safe_scan_engine}</p>
                 <p><strong>Motor de banners:</strong> {safe_banner_engine}</p>
             </div>
-            
+
             <div class="results">
                 {"".join(result_blocks)}
             </div>

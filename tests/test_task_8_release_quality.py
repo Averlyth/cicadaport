@@ -1,0 +1,41 @@
+"""Active TASK 8 RC3 identity and quality gates (history remains RC2)."""
+
+from pathlib import Path
+
+from src.version import RELEASE_CHANNEL, SEMVER_VERSION, __version__
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def test_rc3_identity_is_canonical_and_not_stable() -> None:
+    assert SEMVER_VERSION == "3.0.0-rc.3"
+    assert __version__ == "3.0.0rc3"
+    assert RELEASE_CHANNEL == "release-candidate"
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert "cicadaport-3.0.0-rc.3-linux-x86_64" in workflow
+
+
+def test_quality_coverage_and_resource_gates_are_required() -> None:
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    for marker in (
+        "name: Python quality and resource hygiene",
+        "python -m black --check src tests",
+        "python -m flake8 src tests",
+        "python -m mypy src",
+        "--cov-fail-under=82",
+        "PytestUnraisableExceptionWarning",
+        "name: Operational acceptance and bounded-resource soak",
+        "SYNTHETIC_SOAK_10_ITERATIONS=PASS",
+        "needs: [supply-chain-policy, secret-scan, python-quality, operational-acceptance]",
+    ):
+        assert marker in workflow
+
+
+def test_historical_rc2_evidence_is_not_rebranded() -> None:
+    historical = ROOT / "docs/contracts/task-5-6-enterprise-validation-rc2-candidate.md"
+    assert historical.is_file()
+    text = historical.read_text(encoding="utf-8")
+    assert "3.0.0-rc.2" in text
+    status = (ROOT / "docs/task-8-status.md").read_text(encoding="utf-8")
+    assert "RC3_TAG=NOT_CREATED" in status
+    assert "STABLE_RELEASE_PUBLICATION=NOT_AUTHORIZED" in status

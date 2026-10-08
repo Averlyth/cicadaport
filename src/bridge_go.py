@@ -3,7 +3,6 @@
 import json
 import os
 import subprocess
-from pathlib import Path
 import threading
 from typing import Any, Dict, List, Optional
 
@@ -65,12 +64,11 @@ class GoBannerBridge:
             timeout=timeout,
         )
         request_text = (
-            json.dumps(request.to_contract_dict(), separators=(",", ":"))
-            + "\n"
+            json.dumps(request.to_contract_dict(), separators=(",", ":")) + "\n"
         )
 
         event_stream = None
-        popen_kwargs: Dict[str, object] = {}
+        popen_kwargs: Dict[str, Any] = {}
         if event_callback is not None:
             event_stream = NativeEventStream(
                 callback=event_callback,

@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10--3.13-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![Platform](https://img.shields.io/badge/Platform-Linux%20x86_64-lightgrey.svg)
-![Source Version](https://img.shields.io/badge/Source-3.0.0--rc.2-orange.svg)
+![Source Version](https://img.shields.io/badge/Source-3.0.0--rc.3-orange.svg)
 ![Published Prerelease](https://img.shields.io/badge/Published-v3.0.0--rc.1-informational.svg)
 
 **Specialized TCP reconnaissance platform for authorized security assessments.**
@@ -26,17 +26,19 @@ The current source tree identifies the application as:
 | Organization | Averlyth |
 | Ecosystem | Obscuryx Security Platform |
 | Python distribution | `portscanner-pro` |
-| Source version | `3.0.0-rc.2` |
-| Python version identifier | `3.0.0rc2` |
+| Source version | `3.0.0-rc.3` |
+| Python version identifier | `3.0.0rc3` |
 | Latest published prerelease | `v3.0.0-rc.1` |
 | Stable release | Not published |
 | Primary platform | Linux x86_64 |
 
-`3.0.0-rc.2` is the current source-level release candidate. It is **not currently a published GitHub Release**.
+`3.0.0-rc.3` is the current source-level candidate being validated. It is **not yet a published GitHub Release**.
 
 The latest published prerelease remains [v3.0.0-rc.1](https://github.com/Averlyth/cicadaport/releases/tag/v3.0.0-rc.1).
 
 Development state and published-release state are intentionally treated as separate concerns.
+
+For the current RC3 acceptance gate, see [TASK 8 RC3](docs/task-8-rc3-release.md) and [enterprise acceptance](docs/task-8-acceptance.md). Publication remains blocked until the independent release gate is approved.
 
 ---
 

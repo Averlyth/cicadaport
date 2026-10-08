@@ -8,7 +8,6 @@ import ipaddress
 import math
 from typing import Any, Dict, Iterable, Optional, Tuple, Type, TypeVar
 
-
 SCAN_CONTRACT_VERSION = 1
 BANNER_CONTRACT_VERSION = 1
 
@@ -29,9 +28,7 @@ def _normalize_contract_ports(
         if isinstance(port, bool) or not isinstance(port, int):
             raise ValueError(f"{field_name} debe contener únicamente enteros.")
         if not 1 <= port <= 65535:
-            raise ValueError(
-                f"{field_name} debe contener puertos entre 1 y 65535."
-            )
+            raise ValueError(f"{field_name} debe contener puertos entre 1 y 65535.")
         normalized.add(port)
 
     if not normalized:
@@ -197,7 +194,7 @@ class NativeScanRequest:
     """Solicitud completa y versionada que Python entrega al motor Rust."""
 
     target: str
-    ports: Tuple[int, ...] | Iterable[int]
+    ports: Tuple[int, ...]
     timeout_ms: int
     workers: int
     contract_version: int = SCAN_CONTRACT_VERSION
@@ -301,7 +298,7 @@ class NativeBannerRequest:
     """Solicitud completa y versionada que Python entrega al motor Go."""
 
     target: str
-    ports: Tuple[int, ...] | Iterable[int]
+    ports: Tuple[int, ...]
     timeout_ms: int
     contract_version: int = BANNER_CONTRACT_VERSION
 
@@ -383,7 +380,7 @@ class NativeBannerResult:
 
     target: str
     port: int
-    status: BannerStatus | str
+    status: BannerStatus
     service: str
     banner: Optional[str] = None
     error: Optional[str] = None
@@ -643,9 +640,7 @@ class HostResult:
         result = cls(
             identity=TargetIdentity.from_contract_dict(payload.get("target", {})),
             state=payload.get("state", HostState.UNKNOWN.value),
-            evidence=ScanEvidence.from_contract_dict(
-                payload.get("evidence", {})
-            ),
+            evidence=ScanEvidence.from_contract_dict(payload.get("evidence", {})),
             contract_version=version,
         )
         if payload.get("reason", result.reason.value) != result.reason.value:

@@ -206,7 +206,7 @@ class SessionTuiController:
                     data=data,
                 )
             )
-            if result.state.value == "open":
+            if result.canonical_state.value == "open":
                 self.event_callback(
                     ScanEvent(
                         kind=ScanEventType.OPEN_PORT,

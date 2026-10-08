@@ -13,7 +13,6 @@ import hmac
 import re
 from typing import Any, Iterable, Mapping
 
-
 CONTRACT = "CSEV-CICADAPORT-6.2-001"
 CONTRACT_VERSION = 1
 
@@ -68,9 +67,7 @@ class ProtectedValue:
             ValueClass.SENSITIVE,
             ValueClass.SECRET,
         }:
-            raise ValueError(
-                "ProtectedValue solo admite valores SENSITIVE o SECRET."
-            )
+            raise ValueError("ProtectedValue solo admite valores SENSITIVE o SECRET.")
         if not isinstance(self._value, str):
             raise TypeError("ProtectedValue requiere un valor textual.")
 
@@ -117,8 +114,7 @@ _HIGH_SIGNAL_PATTERNS = (
     ),
     (
         re.compile(
-            r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|"
-            r"github_pat_[A-Za-z0-9_]{20,})\b"
+            r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|" r"github_pat_[A-Za-z0-9_]{20,})\b"
         ),
         "<REDACTED_GITHUB_TOKEN>",
     ),
@@ -146,11 +142,7 @@ def redact_text(
 
     text = str(value)
     ordered = sorted(
-        (
-            item
-            for item in protected_values
-            if item.reveal()
-        ),
+        (item for item in protected_values if item.reveal()),
         key=lambda item: (-len(item.reveal()), item.name),
     )
     for item in ordered:

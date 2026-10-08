@@ -364,13 +364,9 @@ class TransitionPlan:
             raise ValueError("too many artifacts")
         if not all(isinstance(item, PlanArtifact) for item in self.artifacts):
             raise TypeError("artifacts must contain PlanArtifact values")
-        if len({item.artifact_id for item in self.artifacts}) != len(
-            self.artifacts
-        ):
+        if len({item.artifact_id for item in self.artifacts}) != len(self.artifacts):
             raise ValueError("artifact identifiers must be unique")
-        if len({item.relative_path for item in self.artifacts}) != len(
-            self.artifacts
-        ):
+        if len({item.relative_path for item in self.artifacts}) != len(self.artifacts):
             raise ValueError("artifact paths must be unique")
         if self.backup is not None and not isinstance(
             self.backup,

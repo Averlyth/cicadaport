@@ -13,12 +13,12 @@ def source(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_rc2_version_source_and_ci_identity_are_coherent() -> None:
+def test_current_rc3_version_source_and_ci_identity_are_coherent() -> None:
     version = source("src/version.py")
     workflow = source(".github/workflows/ci.yml")
-    assert '__version__ = "3.0.0rc2"' in version
-    assert 'SEMVER_VERSION = "3.0.0-rc.2"' in version
-    assert "cicadaport-3.0.0-rc.2-linux-x86_64" in workflow
+    assert '__version__ = "3.0.0rc3"' in version
+    assert 'SEMVER_VERSION = "3.0.0-rc.3"' in version
+    assert "cicadaport-3.0.0-rc.3-linux-x86_64" in workflow
     assert "cicadaport-3.0.0-rc.1-linux-x86_64" not in workflow
 
 
@@ -161,7 +161,7 @@ def test_loss_recovery_binds_exact_signed_predecessor_chain_and_surfaces() -> No
 
     for marker in (
         'git verify-commit "$predecessor"',
-        'git merge-base --is-ancestor',
+        "git merge-base --is-ancestor",
         "PREDECESSOR_CONTRACT_SURFACES=PASS",
         "scripts/run_task_5_1_baseline.sh",
         "scripts/run_task_5_2_acceptance.sh",
@@ -174,9 +174,7 @@ def test_loss_recovery_binds_exact_signed_predecessor_chain_and_surfaces() -> No
 
 def test_commit_a_acceptance_mode_stops_before_known_release_lock_defect() -> None:
     runner = source("scripts/run_task_5_6_acceptance.sh")
-    through_index = runner.index(
-        "ENTERPRISE_ACCEPTANCE_THROUGH_EVIDENCE_CHAIN=PASS"
-    )
+    through_index = runner.index("ENTERPRISE_ACCEPTANCE_THROUGH_EVIDENCE_CHAIN=PASS")
     lock_index = runner.index("./scripts/compile_release_lock.sh --check")
     finalization_guard = (
         'if [[ "$RETURN_CODE" -eq 0 && "$ACCEPTANCE_MODE" == "full" ]]; then'

@@ -30,7 +30,6 @@ from src.structured_logging import (
     sanitize_text,
 )
 
-
 FIXED_UTC = datetime(2026, 8, 1, 17, 30, tzinfo=timezone.utc)
 
 
@@ -66,11 +65,7 @@ def metric_series(
     registry: BoundedMetricsRegistry,
     name: str,
 ) -> list[dict[str, object]]:
-    return [
-        item
-        for item in registry.snapshot()["series"]
-        if item["name"] == name
-    ]
+    return [item for item in registry.snapshot()["series"] if item["name"] == name]
 
 
 def test_health_starts_fail_closed_and_live() -> None:
@@ -356,10 +351,7 @@ def test_logging_redacts_known_secret_and_high_signal_values() -> None:
         _value="CICADAPORT-EXACT-CANARY",
     )
     text = sanitize_text(
-        (
-            "CICADAPORT-EXACT-CANARY "
-            "Bearer abcdefghijklmnopqrstuvwxyz"
-        ),
+        ("CICADAPORT-EXACT-CANARY " "Bearer abcdefghijklmnopqrstuvwxyz"),
         limit=512,
         protected_values=(secret,),
     )
@@ -457,9 +449,7 @@ def test_logger_emits_sanitized_exception() -> None:
     )
 
     try:
-        raise RuntimeError(
-            "failure CICADAPORT-EXCEPTION-CANARY user@example.com"
-        )
+        raise RuntimeError("failure CICADAPORT-EXCEPTION-CANARY user@example.com")
     except RuntimeError as exc:
         result = logger.emit_exception(
             event_name="scan.failed",
@@ -508,7 +498,9 @@ def test_observability_facade_records_local_state_without_export() -> None:
     assert len(emitted) == 1
 
 
-def test_observability_rejects_unbounded_operation_values_without_partial_gauge() -> None:
+def test_observability_rejects_unbounded_operation_values_without_partial_gauge() -> (
+    None
+):
     facade = LocalObservability(
         health=HealthState(
             utc_clock=utc_clock,

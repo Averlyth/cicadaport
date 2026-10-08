@@ -25,7 +25,6 @@ from src.operations import (
 )
 from src.security_values import redact_text
 
-
 CONTRACT = "CSEV-CICADAPORT-6.2-001"
 CONTRACT_VERSION = 1
 MAX_VERSION_OUTPUT = 512
@@ -56,35 +55,22 @@ def observe_python_environment(
 ) -> dict[str, Any]:
     """Observa el intérprete sin efectuar fallback ni mutaciones."""
 
-    observed_executable = (
-        sys.executable if executable is None else executable
-    )
+    observed_executable = sys.executable if executable is None else executable
     observed_prefix = sys.prefix if prefix is None else prefix
-    observed_base_prefix = (
-        sys.base_prefix if base_prefix is None else base_prefix
-    )
-    observed_version = tuple(
-        sys.version_info[:3] if version is None else version
-    )
+    observed_base_prefix = sys.base_prefix if base_prefix is None else base_prefix
+    observed_version = tuple(sys.version_info[:3] if version is None else version)
     if len(observed_version) != 3:
         raise ValueError("version debe contener major, minor y micro.")
 
     virtualenv = observed_prefix != observed_base_prefix
     supported_python = (
-        int(observed_version[0]) == 3
-        and 10 <= int(observed_version[1]) <= 13
+        int(observed_version[0]) == 3 and 10 <= int(observed_version[1]) <= 13
     )
     executable_inside_prefix = False
     try:
-        executable_path = Path(
-            os.path.abspath(observed_executable)
-        )
-        prefix_path = Path(
-            os.path.abspath(observed_prefix)
-        )
-        executable_inside_prefix = executable_path.is_relative_to(
-            prefix_path
-        )
+        executable_path = Path(os.path.abspath(observed_executable))
+        prefix_path = Path(os.path.abspath(observed_prefix))
+        executable_inside_prefix = executable_path.is_relative_to(prefix_path)
     except (OSError, RuntimeError, ValueError):
         executable_inside_prefix = False
 
@@ -172,9 +158,7 @@ def observe_toolchain(
     requirement: ToolchainRequirement,
     *,
     which: Callable[[str], str | None] = shutil.which,
-    runner: Callable[[Sequence[str]], tuple[int, str]] = (
-        _default_version_runner
-    ),
+    runner: Callable[[Sequence[str]], tuple[int, str]] = (_default_version_runner),
 ) -> dict[str, Any]:
     """Observa un ejecutable local con argumentos de versión no interactivos."""
 
@@ -222,14 +206,20 @@ def collect_environment_diagnostics(
     toolchains: Sequence[ToolchainRequirement] = (),
     require_virtualenv: bool = True,
     effective_uid: int | None = None,
-    dependency_observer: Callable[
-        [DependencyRequirement],
-        Mapping[str, Any],
-    ] | None = None,
-    toolchain_observer: Callable[
-        [ToolchainRequirement],
-        Mapping[str, Any],
-    ] | None = None,
+    dependency_observer: (
+        Callable[
+            [DependencyRequirement],
+            Mapping[str, Any],
+        ]
+        | None
+    ) = None,
+    toolchain_observer: (
+        Callable[
+            [ToolchainRequirement],
+            Mapping[str, Any],
+        ]
+        | None
+    ) = None,
     python_observation: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Compone diagnóstico seguro sin aprovisionamiento."""
@@ -261,23 +251,13 @@ def collect_environment_diagnostics(
 
     layout = validate_operational_layout(
         configuration.operational,
-        effective_uid=(
-            os.geteuid()
-            if effective_uid is None
-            else effective_uid
-        ),
+        effective_uid=(os.geteuid() if effective_uid is None else effective_uid),
     )
     platform_observation = observe_platform()
     support = classify_support(platform_observation)
 
-    dependencies_pass = all(
-        bool(item["policy_pass"])
-        for item in dependency_results
-    )
-    toolchains_pass = all(
-        bool(item["policy_pass"])
-        for item in toolchain_results
-    )
+    dependencies_pass = all(bool(item["policy_pass"]) for item in dependency_results)
+    toolchains_pass = all(bool(item["policy_pass"]) for item in toolchain_results)
     validation_pass = (
         bool(observed_python["policy_pass"])
         and dependencies_pass

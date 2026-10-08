@@ -120,15 +120,11 @@ class TestNativeRequestContracts(unittest.TestCase):
         )
 
         self.assertEqual(
-            NativeBannerRequest.from_contract_dict(
-                request.to_contract_dict()
-            ),
+            NativeBannerRequest.from_contract_dict(request.to_contract_dict()),
             request,
         )
         self.assertEqual(
-            NativeBannerResult.from_contract_dict(
-                result.to_contract_dict()
-            ),
+            NativeBannerResult.from_contract_dict(result.to_contract_dict()),
             result,
         )
 

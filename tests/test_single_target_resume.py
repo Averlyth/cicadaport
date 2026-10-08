@@ -72,12 +72,12 @@ def make_plan(
     )
 
 
-def make_result(identity: TargetIdentity, port: int, *, is_open: bool) -> dict[str, Any]:
+def make_result(
+    identity: TargetIdentity, port: int, *, is_open: bool
+) -> dict[str, Any]:
     state = PortState.OPEN if is_open else PortState.CLOSED
     reason = (
-        ReasonCode.CONNECTION_ACCEPTED
-        if is_open
-        else ReasonCode.CONNECTION_REFUSED
+        ReasonCode.CONNECTION_ACCEPTED if is_open else ReasonCode.CONNECTION_REFUSED
     )
     result = ScanResult(
         port=port,
@@ -298,7 +298,9 @@ class SingleTargetStoreTests(unittest.TestCase):
         with self.assertRaises(SessionCheckpointIntegrityError):
             self.store.load()
 
-    def test_incompatible_checkpoint_version_is_rejected_after_valid_digest(self) -> None:
+    def test_incompatible_checkpoint_version_is_rejected_after_valid_digest(
+        self,
+    ) -> None:
         self._created_checkpoint()
         pointer_path = self.root / CURRENT_POINTER_NAME
         pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
@@ -310,6 +312,7 @@ class SingleTargetStoreTests(unittest.TestCase):
         ).encode("utf-8")
         checkpoint_path.write_bytes(content)
         import hashlib
+
         pointer["checkpoint_sha256"] = hashlib.sha256(content).hexdigest()
         pointer_path.write_text(
             json.dumps(pointer, sort_keys=True, separators=(",", ":")) + "\n",
@@ -323,7 +326,9 @@ class SingleTargetStoreTests(unittest.TestCase):
         first_pointer = (self.root / CURRENT_POINTER_NAME).read_bytes()
         self.store.persist(created)
         self.assertEqual(first_pointer, (self.root / CURRENT_POINTER_NAME).read_bytes())
-        self.assertEqual(created.to_contract_dict(), self.store.load().to_contract_dict())
+        self.assertEqual(
+            created.to_contract_dict(), self.store.load().to_contract_dict()
+        )
 
     def test_multi_target_plan_is_rejected_by_scope(self) -> None:
         first = make_plan().resolved_targets[0]
@@ -434,7 +439,9 @@ class SingleTargetRunnerTests(unittest.TestCase):
         self.assertEqual((22,), failed.endpoints[0].completed_ports)
         self.assertEqual((80,), failed.endpoints[0].pending_ports)
 
-    def test_pre_cancelled_event_creates_cancelled_checkpoint_without_scan(self) -> None:
+    def test_pre_cancelled_event_creates_cancelled_checkpoint_without_scan(
+        self,
+    ) -> None:
         event = threading.Event()
         event.set()
         executor = RecordingExecutor()
@@ -446,9 +453,7 @@ class SingleTargetRunnerTests(unittest.TestCase):
 
     def test_banner_phase_runs_only_for_open_ports(self) -> None:
         executor = RecordingExecutor(open_ports=(80,))
-        completed = self._runner(executor).run(
-            make_plan(banner_grab=True)
-        )
+        completed = self._runner(executor).run(make_plan(banner_grab=True))
         self.assertEqual([80], executor.banner_calls)
         self.assertEqual((80,), completed.endpoints[0].completed_banner_ports)
         banners = {
@@ -458,7 +463,9 @@ class SingleTargetRunnerTests(unittest.TestCase):
         self.assertEqual("banner-80", banners[80])
         self.assertIsNone(banners[22])
 
-    def test_banner_progress_is_resumable_without_repeating_completed_banner(self) -> None:
+    def test_banner_progress_is_resumable_without_repeating_completed_banner(
+        self,
+    ) -> None:
         class BannerInterruptExecutor(RecordingExecutor):
             def grab_banner(self, **kwargs):
                 result = super().grab_banner(**kwargs)

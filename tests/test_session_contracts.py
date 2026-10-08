@@ -1,4 +1,3 @@
-import json
 import unittest
 
 from src.contracts import (
@@ -19,7 +18,6 @@ from src.session import (
     SessionManifest,
     SessionStatus,
 )
-
 
 SESSION_ID = "4c343440-7b9e-4d3c-a3f6-5ba674f7426e"
 CREATED_AT = "2026-07-27T15:00:00Z"
@@ -173,9 +171,13 @@ class TestScanPlan(SessionContractFixtures, unittest.TestCase):
             )
 
     def test_duplicate_json_keys_are_rejected(self):
-        document = self.plan().to_json().replace(
-            '"record_type":"scan_plan"',
-            '"record_type":"scan_plan","record_type":"scan_plan"',
+        document = (
+            self.plan()
+            .to_json()
+            .replace(
+                '"record_type":"scan_plan"',
+                '"record_type":"scan_plan","record_type":"scan_plan"',
+            )
         )
         with self.assertRaisesRegex(SessionContractError, "clave duplicada"):
             ScanPlan.from_json(document)

@@ -14,16 +14,11 @@ from src.cli import PortScannerCLI
 from src.orchestrator import ScanOrchestrator, ScanRequest
 from src.scanner import PortScanner
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RUST_BINARY = PROJECT_ROOT / "rust-core" / "target" / "release" / "rust-core"
 GO_BINARY = PROJECT_ROOT / "go-banner" / "go-banner"
-REQUIRE_RUST_INTEGRATION = (
-    os.environ.get("CICADAPORT_REQUIRE_RUST_INTEGRATION") == "1"
-)
-REQUIRE_GO_INTEGRATION = (
-    os.environ.get("CICADAPORT_REQUIRE_GO_INTEGRATION") == "1"
-)
+REQUIRE_RUST_INTEGRATION = os.environ.get("CICADAPORT_REQUIRE_RUST_INTEGRATION") == "1"
+REQUIRE_GO_INTEGRATION = os.environ.get("CICADAPORT_REQUIRE_GO_INTEGRATION") == "1"
 
 
 class LocalTcpServer:
@@ -211,9 +206,7 @@ class TestPythonRustEngineParity(unittest.TestCase):
         with LocalTcpServer() as server:
             closed_port = reserve_closed_local_port()
             ports = [server.port, closed_port]
-            python_scanner, python_reportable = (
-                scan_local_ports_with_python(ports)
-            )
+            python_scanner, python_reportable = scan_local_ports_with_python(ports)
 
             rust_scanner = PortScanner(timeout=0.5, max_threads=2)
             rust_args = SimpleNamespace(
@@ -234,9 +227,7 @@ class TestPythonRustEngineParity(unittest.TestCase):
         python_states = {
             result.port: result.is_open for result in python_scanner.results
         }
-        rust_states = {
-            result.port: result.is_open for result in rust_scanner.results
-        }
+        rust_states = {result.port: result.is_open for result in rust_scanner.results}
 
         self.assertEqual(
             python_states,

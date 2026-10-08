@@ -32,7 +32,6 @@ from src.security_values import (
     safe_serialize_value,
 )
 
-
 CONTRACT = "CSEV-CICADAPORT-6.2-001"
 CONTRACT_VERSION = 1
 MAX_EXPLICIT_CONFIG_BYTES = 64 * 1024
@@ -75,9 +74,7 @@ class ConfigurationError(ValueError):
     def to_safe_dict(self) -> dict[str, str | None]:
         return {
             "classification": (
-                None
-                if self.classification is None
-                else self.classification.value
+                None if self.classification is None else self.classification.value
             ),
             "field": self.field_name,
             "message": str(self),
@@ -119,10 +116,7 @@ class ConfigField:
             and self.minimum > self.maximum
         ):
             raise ValueError("minimum no puede exceder maximum.")
-        if (
-            self.classification is ValueClass.FORBIDDEN
-            and self.default is not _MISSING
-        ):
+        if self.classification is ValueClass.FORBIDDEN and self.default is not _MISSING:
             raise ValueError("Un campo FORBIDDEN no admite default.")
 
 
@@ -207,9 +201,7 @@ class ResolvedConfiguration:
             object.__setattr__(
                 self,
                 "explicit_file_assessment",
-                MappingProxyType(
-                    dict(self.explicit_file_assessment)
-                ),
+                MappingProxyType(dict(self.explicit_file_assessment)),
             )
 
     def __repr__(self) -> str:
@@ -237,9 +229,7 @@ class ResolvedConfiguration:
             "contract": CONTRACT,
             "contract_version": CONTRACT_VERSION,
             "explicit_file": (
-                None
-                if self.explicit_file is None
-                else str(self.explicit_file)
+                None if self.explicit_file is None else str(self.explicit_file)
             ),
             "explicit_file_assessment": (
                 None
@@ -366,19 +356,13 @@ def _coerce_integer(
             source,
             f"El campo {field_spec.name} no es INTEGER válido.",
         ) from error
-    if (
-        field_spec.minimum is not None
-        and result < field_spec.minimum
-    ):
+    if field_spec.minimum is not None and result < field_spec.minimum:
         raise _configuration_error(
             field_spec,
             source,
             f"El campo {field_spec.name} queda bajo el mínimo permitido.",
         )
-    if (
-        field_spec.maximum is not None
-        and result > field_spec.maximum
-    ):
+    if field_spec.maximum is not None and result > field_spec.maximum:
         raise _configuration_error(
             field_spec,
             source,
@@ -496,10 +480,7 @@ def _read_explicit_json_config(
     try:
         descriptor = os.open(path, flags)
         current = os.fstat(descriptor)
-        if (
-            current.st_dev != metadata.st_dev
-            or current.st_ino != metadata.st_ino
-        ):
+        if current.st_dev != metadata.st_dev or current.st_ino != metadata.st_ino:
             raise ConfigurationError(
                 "El archivo explícito cambió durante la inspección.",
                 source=SOURCE_FILE,
@@ -527,14 +508,12 @@ def _read_explicit_json_config(
     unknown = sorted(set(document) - set(schema))
     if unknown:
         raise ConfigurationError(
-            "Claves desconocidas en el archivo explícito: "
-            + ", ".join(unknown),
+            "Claves desconocidas en el archivo explícito: " + ", ".join(unknown),
             source=SOURCE_FILE,
         )
 
     secret_present = any(
-        key in document
-        and schema[key].classification is ValueClass.SECRET
+        key in document and schema[key].classification is ValueClass.SECRET
         for key in schema
     )
     if secret_present:
@@ -544,10 +523,7 @@ def _read_explicit_json_config(
                 source=SOURCE_FILE,
                 classification=ValueClass.SECRET,
             )
-        if (
-            effective_uid is not None
-            and metadata.st_uid != effective_uid
-        ):
+        if effective_uid is not None and metadata.st_uid != effective_uid:
             raise ConfigurationError(
                 "El propietario del archivo con campos SECRET no coincide "
                 "con el UID efectivo.",
@@ -594,16 +570,10 @@ def resolve_configuration(
     file_path: Path | None = None
     file_assessment: dict[str, Any] | None = None
     if explicit_file is not None:
-        file_values, file_path, file_assessment = (
-            _read_explicit_json_config(
-                explicit_file,
-                schema=schema_by_name,
-                effective_uid=(
-                    os.geteuid()
-                    if effective_uid is None
-                    else effective_uid
-                ),
-            )
+        file_values, file_path, file_assessment = _read_explicit_json_config(
+            explicit_file,
+            schema=schema_by_name,
+            effective_uid=(os.geteuid() if effective_uid is None else effective_uid),
         )
 
     resolved: dict[str, ResolvedField] = {}
@@ -613,8 +583,7 @@ def resolve_configuration(
             raw = cli[name]
             source = SOURCE_CLI
         elif (
-            field_spec.environment is not None
-            and field_spec.environment in environment
+            field_spec.environment is not None and field_spec.environment in environment
         ):
             raw = environment[field_spec.environment]
             source = SOURCE_ENVIRONMENT

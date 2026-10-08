@@ -128,9 +128,7 @@ def test_relative_path_rejects_unsafe_values(value: str) -> None:
 
 
 def test_relative_path_accepts_canonical_nested_path() -> None:
-    assert validate_relative_path("root/bin/cicadaport") == (
-        "root/bin/cicadaport"
-    )
+    assert validate_relative_path("root/bin/cicadaport") == ("root/bin/cicadaport")
 
 
 @pytest.mark.parametrize("value", [A, B, C, D])

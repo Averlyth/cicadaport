@@ -259,10 +259,7 @@ class TestCanonicalScanContract(unittest.TestCase):
             "go",
         )
         self.assertEqual(
-            [
-                result.port
-                for result in apply_banners.call_args.kwargs["results"]
-            ],
+            [result.port for result in apply_banners.call_args.kwargs["results"]],
             [45001],
         )
 

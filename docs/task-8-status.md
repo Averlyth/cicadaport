@@ -1,5 +1,7 @@
 # Estado formal de TASK 8
 
+**Corte de evidencia (2026-10-08, Stage G precommit):** Los indicadores de commit, CI y artefactos pendientes registran el estado en el momento de esta evaluación; sus resultados posteriores deben añadirse sin alterar retroactivamente esta evidencia.
+
 ```text
 PROJECT=CICADAPORT
 ORGANIZATION=AVERLYTH
@@ -29,7 +31,7 @@ SUBTASK_8_0_POST_MERGE_CI_ATTEMPT_1=CANCELLED
 SUBTASK_8_0_POST_MERGE_CI_ATTEMPT_2=PASS
 SUBTASK_8_0_POST_MERGE_CI=PASS_AFTER_RERUN
 
-SUBTASK_8_1=FINAL_CONSOLIDATION_PENDING_CONSOLIDATED_PR
+SUBTASK_8_1=INITIAL_BACKLOG_INTEGRATED_POST_BASELINE_INTAKE_PENDING
 SUBTASK_8_1_1=COMPLETED_CONSOLIDATED_CLOSED_FROZEN
 SUBTASK_8_1_1_SOURCE_PR=9
 SUBTASK_8_1_1_SOURCE_PR_RESOLUTION=SUPERSEDED_CLOSED_NOT_MERGED
@@ -153,12 +155,12 @@ SUBTASK_8_1_8_MERGE_COMMIT=67b900b4c378d766b8829231b3e9e930baceac71
 SUBTASK_8_1_8_POST_MERGE_CI_RUN=37698558022
 SUBTASK_8_1_8_POST_MERGE_CI=PASS
 
-SUBTASK_8_2=LOCAL_VALIDATION_PASS_PENDING_CI
-SUBTASK_8_3=LOCAL_VALIDATION_PASS_PENDING_CI
-SUBTASK_8_4=IN_IMPLEMENTATION
-SUBTASK_8_5=IN_IMPLEMENTATION
-SUBTASK_8_6=RC3_SOURCE_PREPARATION
-SUBTASK_8_7=PENDING_RC3_REMOTE_ACCEPTANCE
+SUBTASK_8_2=IMPLEMENTED_PR37_REMOTE_CI_PASS_PENDING_FORMAL_CLOSURE
+SUBTASK_8_3=IMPLEMENTED_PR37_REMOTE_CI_PASS_PENDING_FORMAL_CLOSURE
+SUBTASK_8_4=IMPLEMENTED_PR37_REMOTE_CI_PASS_PENDING_FORMAL_CLOSURE
+SUBTASK_8_5=IMPLEMENTED_PR37_REMOTE_CI_PASS_PENDING_FORMAL_CLOSURE
+SUBTASK_8_6=RC3_SOURCE_INTEGRATED_PUBLICATION_NOT_AUTHORIZED
+SUBTASK_8_7=SOURCE_PR37_CI_PASS_RELEASE_ACCEPTANCE_PENDING
 SUBTASK_8_8=BLOCKED
 SUBTASK_8_9=BLOCKED
 
@@ -524,7 +526,7 @@ SUBTASK 8.1 queda formalmente autorizada para iniciar desde el `main` resultante
 del cierre de SUBTASK 8.0. No se considera completada hasta que cada PR tenga
 una resolución explícita y verificable.
 
-## Gates actualmente pendientes
+## Gates históricos anteriores a la integración PR #37
 
 ```text
 RESOURCE_WARNINGS=UNRESOLVED
@@ -539,8 +541,9 @@ FINAL_RC=NOT_BUILT
 STABLE_GO_NO_GO=NOT_EXECUTED
 ```
 
-Estos valores describen trabajo pendiente; no implican necesariamente un fallo
-funcional del producto.
+Estos valores corresponden al diagnóstico histórico anterior a PR #37.
+No representan el estado vigente; la consolidación verificable se
+registra en la sección Stage G al final de este documento.
 
 ## Regla de publicación
 
@@ -559,7 +562,7 @@ corrección sea estrictamente necesaria para cumplir un contrato ya existente.
 Las ampliaciones funcionales se planificarán después del cierre estable de
 `v3.0.0`.
 
-## TASK 8 consolidated productization gate (PR number pending)
+## TASK 8 consolidated productization gate (historical PR #37 preparation snapshot)
 
 ```text
 CURRENT_ACTIVE_SOURCE_VERSION=3.0.0-rc.3
@@ -585,10 +588,10 @@ STABLE_GO_NO_GO=NOT_AUTHORIZED
 STABLE_RELEASE_PUBLICATION=NOT_AUTHORIZED
 ```
 
-The local gates are evidence of implementation, not of RC3 remote acceptance.
-CI on the signed release candidate and independent publication authorization
-remain necessary. Historical RC2 validators and governance records remain
-valid only for their original frozen candidate and baseline.
+This block preserves the pre-PR37 source-preparation snapshot. Later
+CI gates passed on PR #37 and merged main; separate RC3 publication
+authorization is still required. Historical RC2 validators and governance
+records retain their original frozen meaning.
 
 ## Post-baseline Dependabot intake (October 2026)
 
@@ -611,3 +614,97 @@ POST_BASELINE_DEPENDABOT_CLASSIFICATION=PENDING_SECURITY_AND_COMPATIBILITY_REVIE
 WHEEL_GHSA_VGQ5_9859_3MMW=REVIEW_REQUIRED
 FINAL_STABLE_GO_NO_GO=BLOCKED_PENDING_RELEASE_EVIDENCE
 ```
+
+
+## Stage G: reconciled PR37 integration and dependency security intake
+
+The first consolidated productization PR #37 has been merged into `main`.
+The statuses and measurements above include historical snapshots; the values
+below are the latest evidence for the completed source integration. Nothing
+in this section authorizes publication of RC3 or stable v3.0.0.
+
+```text
+TASK8_SOURCE_PR=37_MERGED
+TASK8_SOURCE_IMPLEMENTATION_COMMIT=5eb2ebfaaa4f701871b787a1c1420863b03cb36c
+TASK8_SOURCE_MAIN_MERGE_COMMIT=c27d13a0e7643f1ee6cc6fd4a20e3dce14643176
+TASK8_SOURCE_PREMERGE_PUSH_CI=37788101220_PASS
+TASK8_SOURCE_PREMERGE_PR_CI=37788678813_PASS
+TASK8_SOURCE_POSTMERGE_MAIN_CI=37813550182_PASS_28_OF_28
+TASK8_SOURCE_MAIN_GPG=VERIFIED_GITHUB_AND_LOCAL_KEY_FINGERPRINT
+TASK8_SOURCE_MATRIX=UBUNTU_22_04_AND_24_04_PYTHON_3_10_TO_3_13_PASS
+TASK8_SOURCE_PROVENANCE_VERIFY=PASS_POSTMERGE_PUSH
+TASK8_SOURCE_COVERAGE=82_25_PERCENT
+TASK8_SOURCE_PYTEST=534_PASS_2_SKIPPED_72_SUBTESTS
+TASK8_SOURCE_RESOURCE=53_PASS_14_SUBTESTS
+DEPENDENCY_RECONCILIATION_BRANCH=feat/task-8-rc3-security-dependency-reconciliation
+DEPENDENCY_RECONCILIATION_BASE=c27d13a0e7643f1ee6cc6fd4a20e3dce14643176
+DEPENDENCY_DIRECT_PROPOSALS=32,33,34,35,36
+DEPENDENCY_RELEASE_LOCK_SHA256=c1daa8a206b5835db96b7188629f1e3f95405bd93f44f0c744bce60310035cc8
+DEPENDENCY_RELEASE_LOCK_VERSION_DELTAS=22
+DEPENDENCY_STAGE_D=LOCAL_SOURCE_AND_LOCK_STABLE_PASS
+DEPENDENCY_STAGE_E=LOCAL_16_OF_16_GATES_PASS
+DEPENDENCY_STAGE_F=PYTHON_RUST_GO_AUDITS_PASS
+DEPENDENCY_STAGE_F_HASHED_INSTALL=PASS
+DEPENDENCY_STAGE_F_PIP_CHECK=PASS
+DEPENDENCY_STAGE_F_PIP_AUDIT=NO_KNOWN_VULNERABILITIES_FOUND
+DEPENDENCY_STAGE_F_CARGO_AUDIT=PASS
+DEPENDENCY_STAGE_F_GOVULNCHECK=NO_VULNERABILITIES_FOUND
+DEPENDENCY_STAGE_F_BUILD_BACKEND_COMPATIBILITY=PASS
+DEPENDENCY_RECONCILIATION_COMMIT=NOT_CREATED
+DEPENDENCY_RECONCILIATION_REMOTE_CI=NOT_RUN
+DEPENDENCY_RECONCILIATION_RELEASE_ARTIFACTS=NOT_REVALIDATED
+DEPENDABOT_SOURCE_PRS=OPEN_PENDING_INDEPENDENT_SUPERSEDED_RESOLUTION
+RC3_TAG=NOT_CREATED
+RC3_RELEASE=NOT_PUBLISHED
+STABLE_GO_NO_GO=NOT_AUTHORIZED
+STABLE_PUBLICATION=NOT_AUTHORIZED
+```
+
+The regenerated Python lock contains 22 version changes, including major
+`filelock` 3.32.2 to 4.0.12. Static audit and installation evidence do **not**
+replace reproducible wheel/sdist verification and complete exact-commit CI.
+Wheel 0.48.0 includes the upstream fix associated with
+`GHSA-vgq5-9859-3mmw`; the repository text search found no direct invocation
+of `wheel convert` in the inspected paths. That search does not establish
+absence of indirect calls or eliminate the need for package verification.
+Dependabot PRs #32–#36 remain open until each is resolved independently;
+no original bot PR has been merged as part of this uncommitted reconciliation.
+
+## Stage L — current evidence after signed dependency reconciliation (2026-10-08)
+
+This is an **additive, post-Stage-G snapshot**. Historical Stage G `NOT_CREATED`,
+`NOT_RUN` and other pending values above remain valid for their evidence cut-off.
+They must not be interpreted as the current status of the repository.
+
+```text
+STAGE_L=DOCUMENTATION_PREPARATION_UNCOMMITTED
+POST_BASELINE_DEPENDENCY_COMMIT=c0a1ace88cea37a4ad59303ff9d40c54b49b4788
+POST_BASELINE_DEPENDENCY_PARENT=c27d13a0e7643f1ee6cc6fd4a20e3dce14643176
+POST_BASELINE_DEPENDENCY_TREE=ed00bebc0ca4897f127a2e21ea7d1bcf681bbeaf
+POST_BASELINE_DEPENDENCY_SIGNATURE=GITHUB_VERIFIED_VALID_SSH
+POST_BASELINE_DEPENDENCY_RELEASE_LOCK_SHA256=c1daa8a206b5835db96b7188629f1e3f95405bd93f44f0c744bce60310035cc8
+POST_BASELINE_RELEASE_LOCK_VERSION_CHANGES=22
+STAGE_I_LOCAL_REPRODUCIBILITY=PASS_7_FILES
+STAGE_I_LOCAL_WHEEL_SDIST_INSTALL_SMOKE=PASS
+STAGE_I_LOCAL_SBOM_MANIFEST_HASHES=PASS
+STAGE_I_EXACT_COMMIT_BINDING=PASS
+STAGE_J_RECONCILIATION_PUSH_CI=37822525656_PASS_28_OF_28
+STAGE_K_PERMANENT_BRANCH_FAST_FORWARD=PASS
+STAGE_K_PERMANENT_PUSH_CI=37823691270_PASS_28_OF_28
+STAGE_K_PERMANENT_REMOTE_HEAD=c0a1ace88cea37a4ad59303ff9d40c54b49b4788
+STAGE_K_SECURITY_SOURCE_REMOTE_HEAD=c0a1ace88cea37a4ad59303ff9d40c54b49b4788
+MAIN_LAST_VERIFIED=c27d13a0e7643f1ee6cc6fd4a20e3dce14643176
+DEPENDABOT_PRS_32_TO_36=OPEN_NOT_MERGED_NOT_CLOSED
+SUBTASK_8_7=SOURCE_TECHNICAL_GATES_PASS_FINAL_ACCEPTANCE_PENDING
+SUBTASK_8_8=BLOCKED_NO_FORMAL_GO_NO_GO
+SUBTASK_8_9=BLOCKED_NO_PUBLICATION
+RC3_TAG=NOT_CREATED
+RC3_PUBLICATION=NOT_AUTHORIZED
+STABLE_PUBLICATION=NOT_AUTHORIZED
+```
+
+The post-baseline dependency commit is **not integrated in `main`**. The two
+successful branch `push` workflows are not substitutes for future pull-request
+checks, a protected merge, exact `main` post-merge CI, and a final human decision.
+The proposed second consolidated PR must not record stable GO before the backlog,
+release acceptance and post-merge gates are actually satisfied.

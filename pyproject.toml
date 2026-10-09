@@ -15,7 +15,7 @@ maintainers = [{ name = "Averlyth" }]
 keywords = ["security", "networking", "port-scanner", "rust", "go"]
 dependencies = ["textual>=0.80,<9"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Information Technology",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",

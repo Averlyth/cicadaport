@@ -16,7 +16,7 @@ env:
   RUST_TOOLCHAIN: "1.97.1"
   GO_VERSION: "1.26.9"
   PYTHON_RELEASE_VERSION: "3.13"
-  RELEASE_ARTIFACT_NAME: cicadaport-3.0.0-rc.3-linux-x86_64
+  RELEASE_ARTIFACT_NAME: cicadaport-3.0.0-linux-x86_64
 
 jobs:
   python-tests:
@@ -73,6 +73,8 @@ jobs:
             tests/test_session_store_v2.py \
             tests/test_single_target_resume.py \
             tests/test_specialized_flow.py
+      - name: Task 8.8/8.9 stable source consistency
+        run: python -I -S scripts/verify_task_8_8_9_stable_source.py
       - name: TASK 8 release policy checks
         run: python -m pytest -q tests/test_task_8_release_quality.py
 

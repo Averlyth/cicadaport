@@ -1,4 +1,4 @@
-"""Active TASK 8 RC3 identity and quality gates (history remains RC2)."""
+"""TASK 8 stable source identity and quality gates (history remains intact)."""
 
 from pathlib import Path
 
@@ -7,12 +7,12 @@ from src.version import RELEASE_CHANNEL, SEMVER_VERSION, __version__
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def test_rc3_identity_is_canonical_and_not_stable() -> None:
-    assert SEMVER_VERSION == "3.0.0-rc.3"
-    assert __version__ == "3.0.0rc3"
-    assert RELEASE_CHANNEL == "release-candidate"
+def test_stable_source_identity_is_canonical_and_not_published() -> None:
+    assert SEMVER_VERSION == "3.0.0"
+    assert __version__ == "3.0.0"
+    assert RELEASE_CHANNEL == "stable"
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-    assert "cicadaport-3.0.0-rc.3-linux-x86_64" in workflow
+    assert "cicadaport-3.0.0-linux-x86_64" in workflow
 
 
 def test_quality_coverage_and_resource_gates_are_required() -> None:

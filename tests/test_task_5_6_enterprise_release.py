@@ -13,12 +13,12 @@ def source(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_current_rc3_version_source_and_ci_identity_are_coherent() -> None:
+def test_current_stable_source_version_and_ci_identity_are_coherent() -> None:
     version = source("src/version.py")
     workflow = source(".github/workflows/ci.yml")
-    assert '__version__ = "3.0.0rc3"' in version
-    assert 'SEMVER_VERSION = "3.0.0-rc.3"' in version
-    assert "cicadaport-3.0.0-rc.3-linux-x86_64" in workflow
+    assert '__version__ = "3.0.0"' in version
+    assert 'SEMVER_VERSION = "3.0.0"' in version
+    assert "cicadaport-3.0.0-linux-x86_64" in workflow
     assert "cicadaport-3.0.0-rc.1-linux-x86_64" not in workflow
 
 

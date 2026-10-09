@@ -26,8 +26,8 @@ rust_version="$(rustup run 1.97.1 rustc --version)"
 }
 
 go_version="$(go version)"
-[[ " $go_version " == *" go1.26.8 "* ]] || {
-  echo "[FALLO] Go 1.26.8 requerido; detectado: $go_version" >&2
+[[ " $go_version " == *" go1.26.9 "* ]] || {
+  echo "[FALLO] Go 1.26.9 requerido; detectado: $go_version" >&2
   exit 1
 }
 

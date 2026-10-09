@@ -123,3 +123,118 @@ STAGE_L_RC3_TAG_AND_PUBLICATION=NOT_AUTHORIZED
 STAGE_L_STABLE_GO_NO_GO=NOT_EXECUTED
 STAGE_L_STABLE_PUBLICATION=NOT_AUTHORIZED
 ```
+
+## Stage R — Post-Stage-Q enterprise acceptance review
+
+**Evidence date:** 2026-10-08.
+
+**Scope:** source candidate `3.0.0-rc.3` integrated into
+`main@b57a3f011f88fe917323a2eb8c9d12c7fcedaeee`.
+This is not a published release.
+
+### Integration and CI evidence
+
+- PR #37: source RC3 integrated and verified.
+- PR #38: security dependency reconciliation and Stage L
+  acceptance evidence integrated through a verified signed merge.
+- Postmerge CI run `37850121564`: 28/28 jobs successful.
+- Repository governance: 25 required status contexts.
+- Dependabot PRs #32–#36: closed as superseded, without individual
+  merges; their original branch SHAs were restored and verified.
+- Original signed source and merge histories remain preserved.
+
+### Technical control matrix
+
+| Area | Verified result | Acceptance interpretation |
+| --- | --- | --- |
+| Python supported matrix | PASS | Ubuntu 22.04/24.04; Python 3.10–3.13 |
+| Rust tests, fmt, Clippy and build | PASS | Exact-main CI |
+| Go tests, vet, race and build | PASS | Exact-main CI |
+| Python quality and resource hygiene | PASS | Black, Flake8, Mypy and warnings gate |
+| Python coverage | PASS | Required floor >=82% enforced |
+| Integration and installed artifacts | PASS | Supported-platform CI matrix |
+| Dependency audits and SAST | PASS | CI controls, not an absolute safety guarantee |
+| Secret scanning | PASS | Gitleaks CI job; not native GitHub alert coverage |
+| Release lock and reproducibility | PASS | Exact-main build workflow |
+| CycloneDX SBOM and attestations | PASS | CI signing and verification steps |
+| Bounded synthetic soak | PASS | Ten iterations, not production endurance |
+| Native GitHub alerts | NOT VERIFIED | Disabled or no analysis registered |
+| Documentary current state | REMEDIATION IN PROGRESS | Requires protected integration |
+| Residual risk acceptance | PENDING | Requires explicit architect disposition |
+
+### Open risk and decision register
+
+**R-SEC-NATIVE-01:** Native Dependabot alerts and secret-scanning
+alerts are disabled; Code Scanning reports no analysis. The
+repository's CI provides existing compensating controls, but
+unavailable native inventories cannot be represented as empty.
+Enabling native security features is a separate governance decision.
+
+**R-OPS-SOAK-01:** Ten repeated synthetic bounded-resource tests
+passed. No production-duration endurance evidence has been
+established from those runs. Acceptance of this limited scope
+requires an explicit decision; no production soak is inferred.
+
+**R-DOC-STATE-01:** Current-version references in SECURITY.md
+and ROADMAP.md required correction. Historical RC2 and TASK 4
+records remain preserved. Document compliance requires review
+and protected integration of the corrective changes.
+
+**R-SEC-BLOCKERS-01:** Zero open GitHub issues or pull requests
+does not prove `OPEN_BLOCKERS=0`. Final security and operational
+risk classification remains a human acceptance gate.
+
+### Formal boundary
+
+```text
+STAGE_Q=COMPLETED_CONSOLIDATED_CLOSED_FROZEN
+STAGE_R=ACCEPTANCE_REVIEW_IN_PROGRESS
+STAGE_R_TECHNICAL_CI=PASS_28_OF_28
+STAGE_R_NATIVE_SECURITY_INVENTORY=UNVERIFIED
+STAGE_R_DOCUMENTARY_RECONCILIATION=PENDING_INTEGRATION
+STAGE_R_RISK_DISPOSITION=PENDING
+SUBTASK_8_7=FINAL_ACCEPTANCE_PENDING
+SUBTASK_8_8=BLOCKED
+SUBTASK_8_9=BLOCKED
+RC3_PUBLICATION=NOT_AUTHORIZED
+STABLE_RELEASE=NO_GO
+```
+
+The remaining gates must not be marked successful merely because
+this audit record has been created.
+
+## Stage R.3 — New reachable Go standard-library advisory
+
+The `push` CI associated with source commit
+`4ef7d5d2bdd96645138a93f19fe49423ad20c8a0`
+failed the **Dependency audits** job. The remaining passing jobs do
+not override that failure. `govulncheck` reported `GO-2026-6607`:
+reachable `crypto/tls` standard-library logic in Go 1.26.8.
+The affected call paths include the Go banner engine's TLS
+connection, incremental read and complete write operations.
+
+Security remediation candidate: Go 1.26.9, exact-pinned across
+`.go-version`, all five CI Go installations, `setup.py`,
+`scripts/check_tools.sh`, `scripts/build_all.sh`, and audit policy.
+The release candidate number is unchanged; artifacts must be
+rebuilt and revalidated at the new signed commit SHA.
+
+The GitHub main ruleset still requires status context `Go 1.26.8`;
+that **job label** is temporarily preserved. It is not the runtime
+version, which must be 1.26.9. Renaming the check without updating
+ruleset 20137979 would prevent protected integration.
+
+```text
+STAGE_R3_VULNERABILITY=GO-2026-6607_REACHABLE_GO_1_26_8
+STAGE_R3_FIXED_TOOLCHAIN_CANDIDATE=GO_1_26_9
+STAGE_R3_SECURITY_AUDIT=PENDING_NEW_CI
+STAGE_R3_BUILD_AND_ATTESTATIONS=PENDING_NEW_CI
+STAGE_R3_RULESET_LEGACY_CONTEXT=PRESERVED
+SUBTASK_8_7=FINAL_ACCEPTANCE_PENDING
+SUBTASK_8_8=BLOCKED
+SUBTASK_8_9=BLOCKED
+STABLE_RELEASE=NO_GO
+```
+
+This is prospective remediation evidence, **not** proof of a
+successful new audit, zero security blockers or production endurance.

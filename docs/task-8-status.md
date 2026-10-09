@@ -708,3 +708,96 @@ successful branch `push` workflows are not substitutes for future pull-request
 checks, a protected merge, exact `main` post-merge CI, and a final human decision.
 The proposed second consolidated PR must not record stable GO before the backlog,
 release acceptance and post-merge gates are actually satisfied.
+
+## Stage R — Current post-Stage-Q evidence snapshot (2026-10-08)
+
+This section is an additive current-state record. Prior Stage G and
+Stage L snapshots retain their original evidence cut-offs.
+
+The consolidated dependency and acceptance PR #38 was merged into
+`main` as signed merge commit
+`b57a3f011f88fe917323a2eb8c9d12c7fcedaeee`.
+GitHub verified the signature as valid.
+
+Its parents are:
+- `c27d13a0e7643f1ee6cc6fd4a20e3dce14643176`;
+- `36d28a69bf4e90c2f23b48da2e9864c784e63123`.
+
+The postmerge `main` workflow
+[37850121564](https://github.com/Averlyth/cicadaport/actions/runs/37850121564)
+completed with 28 of 28 successful jobs, including the
+push-only release-artifact provenance verification.
+
+Stage Q administratively resolved original Dependabot PRs
+#32, #33, #34, #35 and #36 as superseded.
+All five are CLOSED, none was individually merged, and the
+five original branch references were verified at their original SHAs.
+Dependabot's automatic branch deletions were repaired without
+moving `main`, rewriting history, or changing application code.
+
+The architect subsequently approved and froze Stage Q.
+
+```text
+STAGE_O=COMPLETED_VERIFIED
+STAGE_P=COMPLETED_AUDITED_RESOLUTION_PREPARED
+STAGE_Q=COMPLETED_CONSOLIDATED_CLOSED_FROZEN
+STAGE_Q_DEPENDABOT_CLOSED=5_OF_5
+STAGE_Q_DEPENDABOT_BRANCHES_PRESERVED=5_OF_5
+
+MAIN=b57a3f011f88fe917323a2eb8c9d12c7fcedaeee
+MAIN_MERGE_SIGNATURE=GITHUB_VERIFIED_VALID
+MAIN_POSTMERGE_CI=37850121564_PASS_28_OF_28
+
+SUBTASK_8_7=FINAL_ACCEPTANCE_PENDING
+SUBTASK_8_8=BLOCKED
+SUBTASK_8_9=BLOCKED
+RC3_TAG=NOT_CREATED
+RC3_PUBLICATION=NOT_AUTHORIZED
+STABLE_RELEASE=NO_GO
+```
+
+The native GitHub Dependabot alerts and secret-scanning alert
+features returned disabled errors; the code-scanning API returned
+`no analysis found`. These are inventory limitations, not proof
+of zero vulnerabilities or zero residual blockers.
+
+The passing CI includes dependency audits, SAST, Gitleaks,
+reproducibility, installation, SBOM, provenance, attestations,
+operational acceptance and ten synthetic bounded-resource soak
+iterations. The synthetic soak must not be called a
+production-duration endurance test.
+
+The current security and release documentation must be
+reconciled through a separately validated protected PR.
+This snapshot does not pre-authorize a release or stable GO.
+
+## Stage R.3 — Go standard-library vulnerability remediation pending CI
+
+The current documentation branch has a signed, verified source
+commit `4ef7d5d2bdd96645138a93f19fe49423ad20c8a0`.
+Its `push` CI exposed a newly published, reachable Go 1.26.8
+standard-library advisory (`GO-2026-6607`) in the banner engine.
+The failed **Dependency audits** job is retained as negative evidence.
+
+The remediation proposes exactly Go 1.26.9 and reconciles the five
+GitHub Actions `setup-go` invocations, release build hook,
+local toolchain and dependency audit scripts, tests, and active
+product documentation. The signed historical source and audit
+records remain unchanged. The GitHub protected-main required
+status context `Go 1.26.8` is retained as a label only pending
+a separate ruleset migration.
+
+```text
+STAGE_R2_COMMIT=4ef7d5d2bdd96645138a93f19fe49423ad20c8a0
+STAGE_R2_PUSH_CI=37856976966_FAILURE_DEPENDENCY_AUDITS
+STAGE_R3_GO_SECURITY_REMEDIATION=PREPARED_NOT_VALIDATED
+STAGE_R3_GO_TOOLCHAIN_TARGET=1.26.9
+STAGE_R3_AUDIT=UNVERIFIED_PENDING_NEW_EXACT_SHA
+STAGE_R3_MAIN_INTEGRATION=NOT_AUTHORIZED
+STAGE_R3_GO_REQUIRED_CONTEXT=LEGACY_NAME_PRESERVED
+SUBTASK_8_7=FINAL_ACCEPTANCE_PENDING
+SUBTASK_8_8=BLOCKED
+SUBTASK_8_9=BLOCKED
+RC3_PUBLICATION=NOT_AUTHORIZED
+STABLE_RELEASE=NO_GO
+```

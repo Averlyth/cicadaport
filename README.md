@@ -164,7 +164,7 @@ Rust:
   - 1.97.1
 
 Go:
-  - 1.26.8
+  - 1.26.9
 ```
 
 The following environments are not currently part of the verified support matrix:

@@ -238,3 +238,46 @@ STABLE_RELEASE=NO_GO
 
 This is prospective remediation evidence, **not** proof of a
 successful new audit, zero security blockers or production endurance.
+
+
+## Stage R.3 — Postmerge technical-evidence verification (2026-10-09 UTC)
+
+The earlier R.3 section is an immutable prospective snapshot. Subsequent
+verified facts supersede its pending statuses **only for the later evidence
+cutoff**, without altering the failed Stage R.2 run.
+
+- PR #39 protected-merged the signed Stage R.2 and R.3 commits into
+  `main@71afe74e5872f69218f149828103cf041e3079dc`.
+  The GitHub merge signature and both merge parents are verified; candidate
+  tree: `1137273d3b74aa00f6520d14c963904b531f85bc`.
+- Branch push CI `37866204381`: 28/28 successful jobs.
+- PR CI `37866864489`: successful; 27 jobs passed and the push-only
+  attestation-verification job was skipped, without a failed job.
+- Exact-main postmerge CI `37867530902`: 28/28 successful jobs. The
+  reproducibility, installed-artifact matrix, signed SLSA and CycloneDX
+  attestation generation, delivery verification, security audits, SAST,
+  operational synthetic soak and integration jobs passed.
+- Local Stage R.3 evidence: Python 3.13, 535 passed, 2 skipped,
+  72 subtests passed, coverage 82.25%; Black, Flake8, Mypy, Rust, Go race,
+  ShellCheck and Python/Rust/Go dependency audits passed.
+- Go `1.26.9` fixes the previously reachable Go `1.26.8` TLS advisory
+  `GO-2026-6607` for the validated candidate; CI and dependency audit
+  verified that patched toolchain. The protected status check still carries
+  the legacy label `Go 1.26.8` pending governed migration.
+
+### Risks retained for explicit human disposition
+
+| Risk | Evidenced observation | Gate decision |
+| --- | --- | --- |
+| `R-SEC-NATIVE-01` | Native GitHub alert inventories unavailable/not verified; CI compensating controls pass | PENDING: verify or explicitly accept limited visibility |
+| `R-OPS-SOAK-01` | Ten bounded synthetic iterations pass; no production-duration endurance proof | PENDING: explicitly accept limits or demand further evidence |
+| `R-DOC-STATE-01` | Current source/docs corrections integrated in PR #39; this final evidence record not yet merged | PENDING: independently integrate documentation with CI |
+| `R-SEC-BLOCKERS-01` | Scanner PASS and issue/PR counts alone do not demonstrate zero residual blockers | PENDING: classify and approve final blocking-risk inventory |
+
+**Disposition:** technical source validation is PASS. The four decisions
+above and final SUBTASK 8.7 sign-off remain **PENDING**, not waived by CI.
+SUBTASK 8.8, SUBTASK 8.9, RC3 publication and stable release remain blocked
+or unauthorized. No tag or GitHub Release is created by this documentation.
+
+Full evidence and decision fields:
+[`docs/audits/task-8-stage-r3-postmerge-evidence.md`](audits/task-8-stage-r3-postmerge-evidence.md).

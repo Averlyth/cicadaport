@@ -133,3 +133,31 @@ ruleset transition after its new status check is available.
 **Evidence boundary:** this entry specifies the remediation candidate.
 No `govulncheck` PASS, PR merge, 8.7 closure, RC3 publication,
 or stable GO is claimed before new exact-commit CI and manual review.
+
+
+## Stage R.3 — Verified Go 1.26.9 remediation on `main`
+
+The preceding "remediation candidate" section is the record at the time
+of proposed changes. A later protected integration completed:
+
+- Signed source commits `4ef7d5d2bdd96645138a93f19fe49423ad20c8a0`
+  (R.2) and `08d3d76a4e3873d786bb13eeecc31aacfcc62dc2` (R.3)
+  were integrated through PR #39 by the `merge` method.
+- Main merge: `71afe74e5872f69218f149828103cf041e3079dc`,
+  GitHub signature `verified=true, reason=valid`.
+- Premerge push CI `37866204381`: 28/28 PASS; PR CI `37866864489`:
+  27 PASS, one push-only job SKIPPED, workflow SUCCESS.
+- Postmerge `main` CI `37867530902`: **28/28 PASS**. This includes the
+  remediated Go security audit, reproducible builds and signed provenance,
+  SBOM attestations, verification and installation across the supported matrix.
+- Exact toolchain is Go 1.26.9; CI check label `Go 1.26.8` is retained
+  solely to satisfy ruleset `20137979` (25 required status contexts).
+
+This establishes a validated **source-level** RC3 candidate, not a GitHub
+Release. No RC3 tag, RC3 publication, stable GO decision or stable release
+is authorized. SUBTASK 8.7 retains a separate human residual-risk
+acceptance gate; 8.8 and 8.9 remain blocked.
+
+The postmerge audit is prepared as a separate proposed document at
+[`docs/audits/task-8-stage-r3-postmerge-evidence.md`](audits/task-8-stage-r3-postmerge-evidence.md);
+it will require its own CI and protected integration.

@@ -24,8 +24,8 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def test_single_version_source_drives_cli_and_metadata() -> None:
-    assert __version__ == "3.0.0rc3"
-    assert SEMVER_VERSION == "3.0.0-rc.3"
+    assert __version__ == "3.0.0"
+    assert SEMVER_VERSION == "3.0.0"
     output = StringIO()
     with redirect_stdout(output), pytest.raises(SystemExit) as exit_info:
         PortScannerCLI().parser.parse_args(["--version"])
@@ -50,7 +50,7 @@ def test_support_metadata_is_linux_x86_64() -> None:
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     project = pyproject["project"]
     assert project["requires-python"] == ">=3.10,<3.14"
-    assert "Development Status :: 4 - Beta" in project["classifiers"]
+    assert "Development Status :: 5 - Production/Stable" in project["classifiers"]
     assert "Operating System :: POSIX :: Linux" in project["classifiers"]
     assert not any("OS Independent" in item for item in project["classifiers"])
     assert project["license"] == "MIT"

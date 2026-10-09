@@ -770,3 +770,34 @@ production-duration endurance test.
 The current security and release documentation must be
 reconciled through a separately validated protected PR.
 This snapshot does not pre-authorize a release or stable GO.
+
+## Stage R.3 — Go standard-library vulnerability remediation pending CI
+
+The current documentation branch has a signed, verified source
+commit `4ef7d5d2bdd96645138a93f19fe49423ad20c8a0`.
+Its `push` CI exposed a newly published, reachable Go 1.26.8
+standard-library advisory (`GO-2026-6607`) in the banner engine.
+The failed **Dependency audits** job is retained as negative evidence.
+
+The remediation proposes exactly Go 1.26.9 and reconciles the five
+GitHub Actions `setup-go` invocations, release build hook,
+local toolchain and dependency audit scripts, tests, and active
+product documentation. The signed historical source and audit
+records remain unchanged. The GitHub protected-main required
+status context `Go 1.26.8` is retained as a label only pending
+a separate ruleset migration.
+
+```text
+STAGE_R2_COMMIT=4ef7d5d2bdd96645138a93f19fe49423ad20c8a0
+STAGE_R2_PUSH_CI=37856976966_FAILURE_DEPENDENCY_AUDITS
+STAGE_R3_GO_SECURITY_REMEDIATION=PREPARED_NOT_VALIDATED
+STAGE_R3_GO_TOOLCHAIN_TARGET=1.26.9
+STAGE_R3_AUDIT=UNVERIFIED_PENDING_NEW_EXACT_SHA
+STAGE_R3_MAIN_INTEGRATION=NOT_AUTHORIZED
+STAGE_R3_GO_REQUIRED_CONTEXT=LEGACY_NAME_PRESERVED
+SUBTASK_8_7=FINAL_ACCEPTANCE_PENDING
+SUBTASK_8_8=BLOCKED
+SUBTASK_8_9=BLOCKED
+RC3_PUBLICATION=NOT_AUTHORIZED
+STABLE_RELEASE=NO_GO
+```

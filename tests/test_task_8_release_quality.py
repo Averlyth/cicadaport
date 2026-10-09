@@ -39,3 +39,21 @@ def test_historical_rc2_evidence_is_not_rebranded() -> None:
     status = (ROOT / "docs/task-8-status.md").read_text(encoding="utf-8")
     assert "RC3_TAG=NOT_CREATED" in status
     assert "STABLE_RELEASE_PUBLICATION=NOT_AUTHORIZED" in status
+
+
+def test_security_go_toolchain_is_pinned_across_entrypoints() -> None:
+    """Do not reintroduce the reachable Go 1.26.8 stdlib TLS advisory."""
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    setup = (ROOT / "setup.py").read_text(encoding="utf-8")
+    check_tools = (ROOT / "scripts/check_tools.sh").read_text(encoding="utf-8")
+    audit = (ROOT / "scripts/audit_dependencies.sh").read_text(encoding="utf-8")
+    go_pin = (ROOT / ".go-version").read_text(encoding="utf-8")
+
+    assert go_pin == "1.26.9\n"
+    assert 'GO_VERSION: "1.26.9"' in workflow
+    assert workflow.count('go-version: "1.26.9"') == 5
+    assert 'go-version: "1.26.8"' not in workflow
+    assert "name: Go 1.26.8" in workflow  # Legacy required status context.
+    assert 'GO_VERSION = "go1.26.9"' in setup
+    assert "go1.26.9" in check_tools
+    assert '"go1.26.9"' in audit

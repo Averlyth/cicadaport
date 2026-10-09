@@ -45,7 +45,7 @@ Required toolchains:
 
 - Python 3.10, 3.11, 3.12, or 3.13;
 - Rust 1.97.1 with `rustfmt` and Clippy;
-- Go 1.26.8;
+- Go 1.26.9;
 - Linux x86_64;
 - Bash;
 - ShellCheck.

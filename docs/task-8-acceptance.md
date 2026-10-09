@@ -202,3 +202,39 @@ STABLE_RELEASE=NO_GO
 
 The remaining gates must not be marked successful merely because
 this audit record has been created.
+
+## Stage R.3 — New reachable Go standard-library advisory
+
+The `push` CI associated with source commit
+`4ef7d5d2bdd96645138a93f19fe49423ad20c8a0`
+failed the **Dependency audits** job. The remaining passing jobs do
+not override that failure. `govulncheck` reported `GO-2026-6607`:
+reachable `crypto/tls` standard-library logic in Go 1.26.8.
+The affected call paths include the Go banner engine's TLS
+connection, incremental read and complete write operations.
+
+Security remediation candidate: Go 1.26.9, exact-pinned across
+`.go-version`, all five CI Go installations, `setup.py`,
+`scripts/check_tools.sh`, `scripts/build_all.sh`, and audit policy.
+The release candidate number is unchanged; artifacts must be
+rebuilt and revalidated at the new signed commit SHA.
+
+The GitHub main ruleset still requires status context `Go 1.26.8`;
+that **job label** is temporarily preserved. It is not the runtime
+version, which must be 1.26.9. Renaming the check without updating
+ruleset 20137979 would prevent protected integration.
+
+```text
+STAGE_R3_VULNERABILITY=GO-2026-6607_REACHABLE_GO_1_26_8
+STAGE_R3_FIXED_TOOLCHAIN_CANDIDATE=GO_1_26_9
+STAGE_R3_SECURITY_AUDIT=PENDING_NEW_CI
+STAGE_R3_BUILD_AND_ATTESTATIONS=PENDING_NEW_CI
+STAGE_R3_RULESET_LEGACY_CONTEXT=PRESERVED
+SUBTASK_8_7=FINAL_ACCEPTANCE_PENDING
+SUBTASK_8_8=BLOCKED
+SUBTASK_8_9=BLOCKED
+STABLE_RELEASE=NO_GO
+```
+
+This is prospective remediation evidence, **not** proof of a
+successful new audit, zero security blockers or production endurance.

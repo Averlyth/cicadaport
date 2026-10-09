@@ -134,7 +134,7 @@ def test_release_files_and_toolchains_are_pinned() -> None:
     assert "setuptools.command.bdist_wheel" in setup_source
     assert "wheel.bdist_wheel" not in setup_source
     assert "cargo +1.97.1 rustc --version" not in check_tools
-    assert (ROOT / ".go-version").read_text(encoding="utf-8").strip() == "1.26.8"
+    assert (ROOT / ".go-version").read_text(encoding="utf-8").strip() == "1.26.9"
     for path in (
         ROOT / "CHANGELOG.md",
         ROOT / "docs" / "release-candidate.md",

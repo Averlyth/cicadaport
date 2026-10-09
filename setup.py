@@ -15,7 +15,7 @@ from setuptools.command.bdist_wheel import bdist_wheel as _bdist_wheel
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 RUST_TOOLCHAIN = "1.97.1"
-GO_VERSION = "go1.26.8"
+GO_VERSION = "go1.26.9"
 SUPPORTED_MACHINES = {"x86_64", "amd64"}
 NATIVE_NAMES = ("rust-core", "go-banner")
 

@@ -12,7 +12,7 @@ has been authorized or published.
 | Linux | x86_64, Ubuntu 22.04 and 24.04 |
 | Python | 3.10, 3.11, 3.12 and 3.13 |
 | Rust | 1.97.1, mandatory TCP Connect engine |
-| Go | 1.26.8, mandatory when banner evidence is enabled |
+| Go | 1.26.9, mandatory when banner evidence is enabled; security patch pending validation |
 | Distribution | wheel and sdist verified outside checkout |
 | Network validation | loopback and explicitly authorized targets |
 | Public contracts | JSONL v1, service evidence v2 |
@@ -107,3 +107,29 @@ their separate evidence and authorization requirements.
 
 Earlier Stage G and Stage L statements are historical snapshots;
 they are not rewritten or retrospectively represented as PASS.
+
+## Stage R.3 — Go toolchain security remediation candidate
+
+A later `push` workflow for documentation commit
+`4ef7d5d2bdd96645138a93f19fe49423ad20c8a0`
+failed in the **Dependency audits** job. `govulncheck` detected the
+reachable Go standard-library advisory `GO-2026-6607` in
+`crypto/tls@go1.26.8`. The trace includes Go banner engine TLS
+connection, read, and write paths. This is a real audit failure,
+not a documentation-only test failure or a scanner false-positive.
+
+Go 1.26.9 was released on 2026-10-08 with security corrections,
+including `crypto/tls`. The proposed patch updates all active Go
+compiler/toolchain references used for CI, source distribution
+build, local tool checking and current support documentation.
+Historical RC2 evidence remains unchanged.
+
+The legacy CI job name `Go 1.26.8` is retained solely because the
+active protected-main ruleset still requires that exact status
+context. The actual Go compiler installed by every setup-go step
+is 1.26.9. The name must be migrated in a separately authorized
+ruleset transition after its new status check is available.
+
+**Evidence boundary:** this entry specifies the remediation candidate.
+No `govulncheck` PASS, PR merge, 8.7 closure, RC3 publication,
+or stable GO is claimed before new exact-commit CI and manual review.

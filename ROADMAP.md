@@ -68,7 +68,7 @@ probada.
 | `DT-03` | Implementaciones Python de escaneo y banners. | Decisión aprobada en `CCR-CICADAPORT-3.2.10-001`: `ScanResult` y el ciclo externo permanecen como núcleo; TCP, UDP y banners Python se conservan como referencia interna, pruebas y paridad. | Implementar sin selección pública, fallback, deprecación ni retirada en `2.2.0`. |
 | `DT-04` | Proyección temporal `is_open`. | Decisión aprobada en `CCR-CICADAPORT-3.2.10-001`: permanece el contrato v1; `state` es la fuente de verdad e `is_open` su proyección derivada. | Centralizar invariantes, migrar consumidores internos a `state` y preservar el campo persistido. |
 | `DT-05` | Versionado de aplicación y estado de release. | RC1 fue publicada como `v3.0.0-rc.1` el 2026-07-26. La fuente vigente declara `3.0.0rc3` / `3.0.0-rc.3`; RC2 no fue publicada y RC3 permanece sin publicar. | La creación de `v3.0.0-rc.3` y su publicación requieren autorización formal separada. |
-| `DT-06` | Matriz de plataformas declarada. | La línea actual mantiene Linux x86_64, Ubuntu 22.04/24.04, Python 3.10-3.13 y Rust 1.97.1; el baseline de Go vigente es 1.26.8. RC1 conserva históricamente Go 1.26.5. | Windows, macOS, ARM64 y Python 3.14 permanecen no soportados hasta una validación formal separada. |
+| `DT-06` | Matriz de plataformas declarada. | La línea actual mantiene Linux x86_64, Ubuntu 22.04/24.04, Python 3.10-3.13 y Rust 1.97.1; el baseline de Go propuesto para la corrección de seguridad es 1.26.9. RC1 conserva históricamente Go 1.26.5. | Windows, macOS, ARM64 y Python 3.14 permanecen no soportados hasta una validación formal separada. |
 
 ## Registro histórico de ejecución del Hito 3
 
@@ -277,7 +277,7 @@ estado previo a esa integración y no deben interpretarse como estado vigente.
 
 La versión fuente actual corresponde a `3.0.0-rc.3` (`3.0.0rc3` en Python).
 RC2 permanece como candidata histórica no publicada. RC3 todavía no tiene
-etiqueta ni publicación; ambas operaciones requieren autorización formal separada. El baseline actual de Go es 1.26.8, sin
+etiqueta ni publicación; ambas operaciones requieren autorización formal separada. El baseline de Go del candidato corregido es 1.26.9, sin
 reescribir las referencias históricas de RC1 que fueron validadas con Go 1.26.5.
 
 ## Gobierno vigente

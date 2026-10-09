@@ -801,3 +801,60 @@ SUBTASK_8_9=BLOCKED
 RC3_PUBLICATION=NOT_AUTHORIZED
 STABLE_RELEASE=NO_GO
 ```
+
+
+## Stage R.3 — Verified postmerge outcome (PR #39)
+
+**Evidence cutoff:** 2026-10-09 UTC (2026-10-08 Bolivia). This is a later
+observation, not a rewrite of the negative Stage R.2 push CI result or the
+prospective Stage R.3 notes above.
+
+- PR [#39](https://github.com/Averlyth/cicadaport/pull/39) merged by the
+  protected `merge` method; original signed commits `4ef7d5d` (R.2)
+  and `08d3d76` (R.3) are preserved in ancestry.
+- Exact merged `main` SHA:
+  `71afe74e5872f69218f149828103cf041e3079dc`; GitHub verified
+  the merge signature (`verified=true`, `reason=valid`). Its parents are
+  `b57a3f011f88fe917323a2eb8c9d12c7fcedaeee` and
+  `08d3d76a4e3873d786bb13eeecc31aacfcc62dc2`; its tree is
+  `1137273d3b74aa00f6520d14c963904b531f85bc`.
+- R.3 push CI [37866204381](https://github.com/Averlyth/cicadaport/actions/runs/37866204381):
+  28/28 jobs successful. PR CI
+  [37866864489](https://github.com/Averlyth/cicadaport/actions/runs/37866864489):
+  workflow successful, 27 jobs successful, 1 push-only provenance job skipped.
+- Exact-main postmerge CI
+  [37867530902](https://github.com/Averlyth/cicadaport/actions/runs/37867530902):
+  28/28 jobs successful, no failures or skips. It includes dependency audits,
+  the pinned Go 1.26.9 toolchain check, Python/Rust/Go tests, reproducible
+  artifacts, SLSA/SBOM attestations and signature/provenance verification.
+- Go advisory `GO-2026-6607` was **reachable** in the earlier Go 1.26.8
+  candidate; it is remediated in the exact-main candidate by the Go 1.26.9
+  toolchain update and verified audits. This does not prove zero
+  vulnerabilities across all present and future attack surfaces.
+- Ruleset `20137979` remains active with 25 mandatory checks. The job **name**
+  `Go 1.26.8` is still required by that ruleset; the actual toolchain is
+  `go1.26.9`. Renaming requires an independent governed ruleset migration.
+
+The supporting evidence and pending risk-disposition register are recorded in
+[`docs/audits/task-8-stage-r3-postmerge-evidence.md`](audits/task-8-stage-r3-postmerge-evidence.md).
+The new documentary record must pass its own commit/PR/postmerge CI before
+being treated as integrated evidence; this paragraph does not authorize any
+release or final acceptance.
+
+```text
+STAGE_R3_PR39=MERGED_SIGNED_VERIFIED
+STAGE_R3_EXACT_MAIN=71afe74e5872f69218f149828103cf041e3079dc
+STAGE_R3_EXACT_MAIN_CI=37867530902_PASS_28_OF_28
+STAGE_R3_GO_SECURITY_AUDIT=PASS_GO_1_26_9
+STAGE_R3_TECHNICAL_GATES=PASS
+STAGE_R3_DOCUMENTARY_RECORD=PREPARED_PENDING_SEPARATE_PROTECTED_INTEGRATION
+STAGE_R3_NATIVE_ALERT_INVENTORY=UNVERIFIED
+STAGE_R3_PRODUCTION_DURATION_SOAK=NOT_DEMONSTRATED
+STAGE_R3_RESIDUAL_RISK_DISPOSITION=PENDING_ARCHITECT_DECISION
+SUBTASK_8_7=FINAL_ACCEPTANCE_PENDING
+SUBTASK_8_8=BLOCKED
+SUBTASK_8_9=BLOCKED
+RC3_TAG=NOT_CREATED
+RC3_PUBLICATION=NOT_AUTHORIZED
+STABLE_RELEASE=NO_GO
+```

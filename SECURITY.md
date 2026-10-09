@@ -84,6 +84,31 @@ The following are outside the intended security-reporting scope unless they dire
 - unsupported environments where the issue cannot be reproduced within the supported matrix;
 - requests to add offensive capabilities that are intentionally outside the CicadaPort security model.
 
+## TLS Observation Trust Boundary
+
+CicadaPort's Go banner engine may intentionally negotiate TLS with an unknown,
+self-signed, expired or otherwise untrusted certificate **only for authorized
+service observation**. Such a connection does not authenticate the endpoint:
+`certificate_verified=false` and
+`verification_not_performed_observation_mode` must remain explicit in evidence.
+Service banners and headers from this connection are untrusted observations,
+not proof of the endpoint's identity, legitimacy or certificate validity.
+
+TLS observation is restricted at runtime to a passive read or the fixed,
+credential-free `HEAD / HTTP/1.0` probe; it rejects modified request payloads
+and unapproved probe descriptors before opening the connection. No passwords,
+API tokens, cookies, authenticated HTTP requests or privileged actions are
+permitted through this transport. TLS 1.2 is the minimum negotiated version.
+Do not reuse this intentionally unauthenticated TLS configuration for ordinary
+HTTP clients, software updates, authenticated API calls or release operations.
+
+The use of `InsecureSkipVerify` in this narrowly bounded observation path
+remains a **real identity-authentication limitation** and is not categorized as
+a CodeQL false positive. The CodeQL finding `go/disabled-certificate-check`
+requires a separately recorded, explicit architect risk decision; tests and
+these restrictions do not establish authenticated transport or eliminate
+active network-interception risks.
+
 ## Operational Boundaries
 
 CicadaPort does not currently expose the following capabilities through its supported public reconnaissance workflow:

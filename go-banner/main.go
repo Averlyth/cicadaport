@@ -547,7 +547,41 @@ func watchConnection(ctx context.Context, connection net.Conn) func() {
 	return func() { close(finished) }
 }
 
+// validateTLSObservationPlan enforces the narrow, unauthenticated TLS
+// reconnaissance boundary before any network activity. The transport MUST NOT
+// be reused for authenticated requests or for transmitting secrets.
+func validateTLSObservationPlan(host string, plan probePlan) error {
+	if !plan.useTLS {
+		return nil
+	}
+	address := normalizeHost(host)
+	if address == "" || strings.ContainsAny(address, "\r\n\x00") {
+		return errors.New("TLS observation policy: invalid target host")
+	}
+	if !plan.descriptor.AllowedByDefault || plan.descriptor.Transport != "tls" {
+		return errors.New("TLS observation policy: unapproved transport or probe")
+	}
+	if len(plan.payload) == 0 {
+		if plan.descriptor.Identifier == "passive-banner" &&
+			plan.descriptor.Invasiveness == "passive" &&
+			plan.descriptor.Parser == "opaque_banner" {
+			return nil
+		}
+		return errors.New("TLS observation policy: unapproved passive probe")
+	}
+	if plan.descriptor.Identifier != "http-head" ||
+		plan.descriptor.Invasiveness != "safe" ||
+		plan.descriptor.Parser != "http_headers" ||
+		!bytes.Equal(plan.payload, buildHTTPProbe(host)) {
+		return errors.New("TLS observation policy: only canonical HTTP HEAD is allowed")
+	}
+	return nil
+}
+
 func openProbeConnection(ctx context.Context, host string, port int, plan probePlan, timeouts phaseTimeouts) (net.Conn, *TLSEvidence, string, error) {
+	if err := validateTLSObservationPlan(host, plan); err != nil {
+		return nil, nil, "connect", err
+	}
 	dialer := net.Dialer{Timeout: timeouts.connect}
 	rawConnection, err := dialer.DialContext(ctx, "tcp", buildTargetAddress(host, port))
 	if err != nil {
@@ -561,6 +595,10 @@ func openProbeConnection(ctx context.Context, host string, port int, plan probeP
 		return nil, nil, "tls_handshake", err
 	}
 	normalizedHost := normalizeHost(host)
+	// Observation-only: untrusted/self-signed certificates must remain observable.
+	// InsecureSkipVerify does NOT authenticate the endpoint; the result explicitly
+	// records certificate_verified=false and MUST NOT be used for trust decisions.
+	// validateTLSObservationPlan rejects active/noncanonical requests before dial.
 	tlsConfig := &tls.Config{InsecureSkipVerify: true, MinVersion: tls.VersionTLS12}
 	if net.ParseIP(normalizedHost) == nil {
 		tlsConfig.ServerName = normalizedHost

@@ -448,6 +448,59 @@ func TestSinkFailureCancelsOutstandingConnections(t *testing.T) {
 	}
 }
 
+func TestTLSObservationPolicyPermitsOnlyPassiveAndCanonicalHEAD(t *testing.T) {
+	t.Parallel()
+	host := "127.0.0.1"
+	for _, port := range []int{443, 465, 636, 993, 995, 2376, 8443} {
+		plan := selectProbe(host, port)
+		if err := validateTLSObservationPlan(host, plan); err != nil {
+			t.Fatalf("approved observation rejected on %d: %v", port, err)
+		}
+	}
+	if err := validateTLSObservationPlan(host, selectProbe(host, 80)); err != nil {
+		t.Fatalf("non-TLS plan rejected: %v", err)
+	}
+}
+
+func TestTLSObservationPolicyRejectsNonCanonicalProbesBeforeDial(t *testing.T) {
+	t.Parallel()
+	host := "127.0.0.1"
+	safe := selectProbe(host, 443)
+	passive := selectProbe(host, 465)
+	active := safe
+	active.payload = []byte("POST / HTTP/1.0\r\n\r\n")
+	disabled := safe
+	disabled.descriptor.AllowedByDefault = false
+	wrongTransport := safe
+	wrongTransport.descriptor.Transport = "tcp"
+	wrongPassive := passive
+	wrongPassive.descriptor.Parser = "http_headers"
+
+	for _, tc := range []struct {
+		name string
+		host string
+		plan probePlan
+	}{
+		{name: "noncanonical payload", host: host, plan: active},
+		{name: "disabled probe", host: host, plan: disabled},
+		{name: "mismatched transport", host: host, plan: wrongTransport},
+		{name: "mismatched passive parser", host: host, plan: wrongPassive},
+		{name: "host header injection", host: "bad\r\nInjected: x", plan: safe},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			connection, evidence, phase, err := openProbeConnection(
+				context.Background(), tc.host, 443, tc.plan, phaseTimeoutsFromLegacy(time.Millisecond),
+			)
+			if err == nil || !strings.Contains(err.Error(), "TLS observation policy:") {
+				t.Fatalf("unsafe plan not rejected: phase=%q err=%v", phase, err)
+			}
+			if connection != nil || evidence != nil || phase != "connect" {
+				t.Fatalf("unsafe plan reached connection stage: conn=%v evidence=%v phase=%q", connection, evidence, phase)
+			}
+		})
+	}
+}
+
 func TestTLSEvidenceNeverClaimsUnverifiedCertificateIsVerified(t *testing.T) {
 	t.Parallel()
 

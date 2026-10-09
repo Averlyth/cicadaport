@@ -8,7 +8,6 @@ import json
 from pathlib import Path
 import re
 import subprocess
-import sys
 import tomllib
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -180,14 +179,52 @@ def verify_artifact_documents(artifact_directory: Path | None) -> None:
         ["git", "write-tree"], cwd=ROOT, text=True
     ).strip()
     sbom_data = json.loads(sbom.read_text(encoding="utf-8"))
-    if sbom_data.get("bomFormat") != "CycloneDX" or sbom_data.get("specVersion") != "1.6":
+    if (
+        sbom_data.get("bomFormat") != "CycloneDX"
+        or sbom_data.get("specVersion") != "1.6"
+    ):
         fail("Invalid CycloneDX document.")
     properties = {
         item.get("name"): item.get("value")
-        for item in sbom_data.get("metadata", {}).get("component", {}).get("properties", [])
+        for item in sbom_data.get("metadata", {})
+        .get("component", {})
+        .get("properties", [])
     }
     if properties.get("cicadaport:git-candidate-tree") != current_tree:
         fail("CycloneDX SBOM is not bound to the current candidate tree.")
+    if properties.get("cicadaport:runtime-coverage") != (
+        "direct-declarations-only-transitives-unresolved"
+    ):
+        fail("CycloneDX does not declare its runtime coverage limit")
+    wheels = sorted(directory.glob("*.whl"))
+    if len(wheels) != 1:
+        fail("Exactly one release wheel required")
+    from generate_cyclonedx_sbom import runtime_components_from_wheel
+
+    expected = runtime_components_from_wheel(wheels[0])
+    actual = [
+        component
+        for component in sbom_data.get("components", [])
+        if any(
+            prop.get("name") == "cicadaport:role"
+            and prop.get("value") == "runtime-declared"
+            for prop in component.get("properties", [])
+        )
+    ]
+    expected.sort(key=lambda item: (item["purl"], item["name"]))
+    if actual != expected:
+        fail("CycloneDX direct runtime inventory differs from wheel")
+    app_ref = sbom_data["metadata"]["component"]["bom-ref"]
+    expected_graph = [
+        {
+            "ref": app_ref,
+            "dependsOn": sorted(item["bom-ref"] for item in expected),
+        }
+    ]
+    if sbom_data.get("dependencies") != expected_graph:
+        fail("CycloneDX direct dependency graph mismatch")
+    print("CYCLONEDX_DIRECT_RUNTIME_COVERAGE=PASS")
+    print("CYCLONEDX_TRANSITIVE_RUNTIME_CLOSURE=NOT_CERTIFIED")
     manifest_data = json.loads(manifest.read_text(encoding="utf-8"))
     if manifest_data.get("schema") != "cicadaport-release-manifest-v2":
         fail("Invalid release manifest.")

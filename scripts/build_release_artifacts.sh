@@ -82,7 +82,7 @@ normalize_sdist "$sdist_path"
 printf 'SDIST_NORMALIZATION=PASS\n'
 
 "$PYTHON" scripts/generate_component_inventory.py "$DIST_DIR/COMPONENTS.json"
-"$PYTHON" scripts/generate_cyclonedx_sbom.py "$DIST_DIR/cicadaport.cdx.json"
+"$PYTHON" scripts/generate_cyclonedx_sbom.py "$DIST_DIR/cicadaport.cdx.json" "$wheel_path"
 "$PYTHON" scripts/generate_release_manifest.py "$DIST_DIR/RELEASE-MANIFEST.json"
 
 (

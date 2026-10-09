@@ -7,6 +7,13 @@ import re
 
 ROOT = Path(__file__).resolve().parent.parent
 WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
+# Accept only exact PEP 440-style versions in the hash-locked release file;
+# ranges, inequalities, wildcard pins and arbitrary pip options are forbidden.
+EXACT_PIN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*==(?:[0-9]+!)?[0-9][A-Za-z0-9_.+-]*")
+
+
+def _is_exact_pin(value: str) -> bool:
+    return EXACT_PIN.fullmatch(value) is not None
 
 
 def test_every_external_action_is_pinned_to_a_full_sha() -> None:
@@ -39,7 +46,34 @@ def test_release_lock_requires_exact_versions_and_hashes() -> None:
     assert "--hash=sha256:" in lock
     for name in ("bandit", "build", "pip-audit", "pip-tools", "twine", "wheel"):
         assert re.search(rf"(?m)^{name}==", lock)
-    assert not re.search(r"(?m)^[A-Za-z0-9_.-]+(?:>=|<=|~=|!=|>|<)", lock)
+    # pip-compile produces one requirement per line, followed by hash options.
+    # Validate all requirement records rather than trying to filter HTML tags.
+    requirements = [
+        line.strip().removesuffix("\\").strip()
+        for line in lock.splitlines()
+        if line.strip() and not line.lstrip().startswith(("#", "--"))
+    ]
+    assert requirements, "Empty release lock"
+    assert all(
+        _is_exact_pin(item) for item in requirements
+    ), "Release lock contains an unpinned or invalid requirement"
+
+
+def test_release_pin_validator_rejects_non_exact_constraints() -> None:
+    assert _is_exact_pin("example-name==1.2.3")
+    assert _is_exact_pin("example_name==1!2.3.0+build")
+    for invalid in (
+        "example-name>=1.2.3",
+        "example-name<=1.2.3",
+        "example-name~=1.2.3",
+        "example-name!=1.2.3",
+        "example-name>1.2.3",
+        "example-name<1.2.3",
+        "example-name==1.2.*",
+        "example-name",
+        "--extra-index-url=unsafe",
+    ):
+        assert not _is_exact_pin(invalid), invalid
 
 
 def test_cyclonedx_and_release_manifest_generators_are_deterministic() -> None:

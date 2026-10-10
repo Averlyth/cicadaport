@@ -67,8 +67,8 @@ probada.
 | `DT-02` | Invocación nativa histórica mediante `--host`, `--ports` y variantes heredadas. | El contrato `CINV-CICADAPORT-3.2.9-001` aprobó retirar las rutas históricas y consolidar `--request-stdin` como única interfaz operativa; `--help` permanece como operación informativa. | Implementación en el Subhito 3.2.9; el cierre exige códigos `0/1/2`, rechazo previo a `stdin` y red, CI verde y la etiqueta firmada `subhito-3.2.9`. |
 | `DT-03` | Implementaciones Python de escaneo y banners. | Decisión aprobada en `CCR-CICADAPORT-3.2.10-001`: `ScanResult` y el ciclo externo permanecen como núcleo; TCP, UDP y banners Python se conservan como referencia interna, pruebas y paridad. | Implementar sin selección pública, fallback, deprecación ni retirada en `2.2.0`. |
 | `DT-04` | Proyección temporal `is_open`. | Decisión aprobada en `CCR-CICADAPORT-3.2.10-001`: permanece el contrato v1; `state` es la fuente de verdad e `is_open` su proyección derivada. | Centralizar invariantes, migrar consumidores internos a `state` y preservar el campo persistido. |
-| `DT-05` | Versionado de aplicación y estado de release. | RC1 fue publicada como `v3.0.0-rc.1` el 2026-07-26. La fuente vigente declara `3.0.0rc3` / `3.0.0-rc.3`; RC2 no fue publicada y RC3 permanece sin publicar. | La creación de `v3.0.0-rc.3` y su publicación requieren autorización formal separada. |
-| `DT-06` | Matriz de plataformas declarada. | La línea actual mantiene Linux x86_64, Ubuntu 22.04/24.04, Python 3.10-3.13 y Rust 1.97.1; el baseline de Go propuesto para la corrección de seguridad es 1.26.9. RC1 conserva históricamente Go 1.26.5. | Windows, macOS, ARM64 y Python 3.14 permanecen no soportados hasta una validación formal separada. |
+| `DT-05` | Versionado y publicación. | Fuente vigente `3.0.0` (estable candidata, NO publicada); `v3.0.0-rc.1` es la última prerelease pública; RC2 y RC3 son antecedentes no publicados. | Resolver expresamente `FINAL_RC` del contrato 8.6; prohibido crear etiquetas o releases por inferencia. |
+| `DT-06` | Matriz soportada. | Linux x86_64, Ubuntu 22.04/24.04, Python 3.10–3.13, Rust 1.97.1 y Go 1.26.9 verificados sobre `main@62fa8c3a7e1b`. | Otras plataformas y cambios de toolchain requieren verificación separada. |
 
 ## Registro histórico de ejecución del Hito 3
 
@@ -275,10 +275,7 @@ verificado `30ac1780239abe9a63d6a6dd47f101398b7bb33f` y source head
 y `PHASE_F=BLOCKED_NOT_AUTHORIZED` se preservan exclusivamente como evidencia del
 estado previo a esa integración y no deben interpretarse como estado vigente.
 
-La versión fuente actual corresponde a `3.0.0-rc.3` (`3.0.0rc3` en Python).
-RC2 permanece como candidata histórica no publicada. RC3 todavía no tiene
-etiqueta ni publicación; ambas operaciones requieren autorización formal separada. El baseline de Go del candidato corregido es 1.26.9, sin
-reescribir las referencias históricas de RC1 que fueron validadas con Go 1.26.5.
+La versión fuente actual es `3.0.0` (candidata estable no publicada) en `main@62fa8c3a7e1b0d8e6002a302f19b6484ea0d75c1`. La última publicación continúa siendo `v3.0.0-rc.1`. RC2 y RC3 son antecedentes fuente no publicados; la cláusula 8.6 sobre RC3 requiere decisión contractual explícita, sin crear un tag retroactivo. Rust 1.97.1 y Go 1.26.9 son el baseline técnico. PR #46 integró la Política A TLS verificada y CI/CodeQL aprobaron sobre ese commit. G6 y la autorización estable siguen pendientes.
 
 ## Gobierno vigente
 

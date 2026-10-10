@@ -59,13 +59,11 @@ normalizan a espacios. Los bytes crudos no se imprimen directamente.
 
 ## Evidencia TLS veraz
 
-TLS se negocia en modo de observación para los puertos ya clasificados como TLS.
-La salida separa negociación, presencia del certificado y verificación. Como no
-se ejecuta una cadena de confianza durante la observación,
-`certificate_verified` permanece `false` y
-`verification_error=verification_not_performed_observation_mode`. También se
-registran versión, suite, ALPN, sujeto, emisor, SAN, vigencia, SHA-256 del
-certificado y longitud de la cadena observada.
+La implementación actual del motor Go ejecuta una negociación TLS autenticada. `crypto/tls` comprueba la cadena X.509, vigencia y nombre del objetivo usando las raíces del sistema, con TLS 1.2 como mínimo. Un certificado autofirmado no confiable, caducado, desconocido o con nombre incorrecto provoca fallo cerrado antes de enviar el probe y no permite capturar un banner.
+
+La evidencia distingue negociación, presencia y verificación; `certificate_verified=true` exige una cadena verificada. Se preservan versión, suite, ALPN, sujeto, emisor, SAN, vigencia, SHA-256 y longitud de cadena cuando la negociación es válida. La modificación está incorporada en PR #46, firmada, con CI protegido y CodeQL posmerge correctos sobre 62fa8c3a7e1b0d8e6002a302f19b6484ea0d75c1.
+
+El diseño de observación TLS no autenticada pertenece a los registros históricos de TASK 5.4 y 8.7; no representa el comportamiento Go vigente.
 
 ## Registro de probes
 

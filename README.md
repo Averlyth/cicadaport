@@ -74,7 +74,7 @@ Go provides service and banner evidence collection.
 
 It operates only when banner collection is explicitly enabled and processes confirmed open ports provided by the orchestration layer.
 
-The Go engine supports bounded reads, passive banner collection, controlled HTTP `HEAD` probing where permitted, TLS observation, output sanitization, and structured evidence.
+The Go engine supports bounded reads, passive banner collection, controlled HTTP `HEAD` probing where permitted, authenticated TLS with X.509 chain and hostname verification, output sanitization, and structured evidence. Untrusted or invalid TLS certificates fail closed before application probes.
 
 ---
 

@@ -35,7 +35,16 @@ def main() -> None:
     assert '"release_candidate": SEMVER_VERSION' in read("scripts/generate_release_manifest.py")
     assert '"contract": "EIVRC-CICADAPORT-5.6-001"' in read("scripts/build_release_artifacts.sh")
     assert '"version": SEMVER_VERSION' in read("scripts/generate_cyclonedx_sbom.py")
-    assert 'verification_not_performed_observation_mode' in read("SECURITY.md")
+    security = read("SECURITY.md")
+    go_engine = read("go-banner/main.go")
+    assert "requires authenticated TLS" in security
+    assert "TLS 1.2 is the minimum allowed protocol" in security
+    assert "certificate_verified=true" in security
+    assert "CertificateVerified: len(state.VerifiedChains) > 0" in go_engine
+    assert "ServerName: normalizedHost" in go_engine
+    assert "RootCAs: roots" in go_engine
+    assert "tlsConnection.HandshakeContext(ctx)" in go_engine
+    assert "InsecureSkipVerify: true" not in go_engine
     assert 'CodeQL' in read("SECURITY.md")
     acceptance = read("docs/audits/task-8-8-9-stable-source-prepublication.md")
     for marker in (

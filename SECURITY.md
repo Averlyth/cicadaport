@@ -86,28 +86,13 @@ The following are outside the intended security-reporting scope unless they dire
 
 ## TLS Observation Trust Boundary
 
-CicadaPort's Go banner engine may intentionally negotiate TLS with an unknown,
-self-signed, expired or otherwise untrusted certificate **only for authorized
-service observation**. Such a connection does not authenticate the endpoint:
-`certificate_verified=false` and
-`verification_not_performed_observation_mode` must remain explicit in evidence.
-Service banners and headers from this connection are untrusted observations,
-not proof of the endpoint's identity, legitimacy or certificate validity.
+The production Go service-evidence engine requires authenticated TLS. Certificate chains, certificate validity, and the target hostname are verified using the operating system trust store before any application probe payload is written. TLS 1.2 is the minimum allowed protocol. The runtime does not enable `InsecureSkipVerify`.
 
-TLS observation is restricted at runtime to a passive read or the fixed,
-credential-free `HEAD / HTTP/1.0` probe; it rejects modified request payloads
-and unapproved probe descriptors before opening the connection. No passwords,
-API tokens, cookies, authenticated HTTP requests or privileged actions are
-permitted through this transport. TLS 1.2 is the minimum negotiated version.
-Do not reuse this intentionally unauthenticated TLS configuration for ordinary
-HTTP clients, software updates, authenticated API calls or release operations.
+Unknown CA, self-signed, expired, or wrong-hostname certificates cause the TLS handshake to fail closed. No banner is captured and no application probe is sent on these failures. Trusted TLS connections report `certificate_verified=true` only when Go's handshake reports a verified certificate chain. The certificate SHA-256 and other metadata are observations, not claims that the remote service is safe. The default probe registry remains limited to passive observation and fixed, credential-free HTTP HEAD.
 
-The use of `InsecureSkipVerify` in this narrowly bounded observation path
-remains a **real identity-authentication limitation** and is not categorized as
-a CodeQL false positive. The CodeQL finding `go/disabled-certificate-check`
-requires a separately recorded, explicit architect risk decision; tests and
-these restrictions do not establish authenticated transport or eliminate
-active network-interception risks.
+Historical exceptions for unauthenticated TLS in TASK 8.7 applied only to prior source snapshots and are superseded for the Go engine by signed PR #46. CodeQL alert #2 (`go/disabled-certificate-check`) was independently observed as `fixed`, without manual dismissal, at `2026-10-10T02:05:30Z`; recheck its state at the final release SHA.
+
+The internal Python reference banner grabber is not the public native engine and retains an unauthenticated TLS observation implementation (`ssl.CERT_NONE`). It must not be reused as a trusted client or presented as equivalent to the Go policy. Eliminating this divergence is a separately governed future task.
 
 ## Operational Boundaries
 

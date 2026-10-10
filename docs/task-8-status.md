@@ -858,3 +858,25 @@ RC3_TAG=NOT_CREATED
 RC3_PUBLICATION=NOT_AUTHORIZED
 STABLE_RELEASE=NO_GO
 ```
+
+## Stage G5 — Postmerge verified TLS remediation (2026-10-10 UTC)
+
+This is a later, additive snapshot. Historical stages and prior risk acceptances remain unchanged at their original cutoffs.
+
+- PR #46, signed source `9a04043506b41e63284a4ce8bb04a0d020067d08`, merged into `main` at `62fa8c3a7e1b0d8e6002a302f19b6484ea0d75c1` (parents `6b58771c55201b4df7c6e874d3fbef008108926f` and `9a04043506b41e63284a4ce8bb04a0d020067d08`). GitHub verified the merge signature; exactly three files changed.
+- Protected main CI run `38015618841` completed SUCCESS, with 32/32 checks successful at the verified integration SHA.
+- Native CodeQL run `38015618948` completed SUCCESS. Previously open HIGH #2 `go/disabled-certificate-check` was observed FIXED at `2026-10-10T02:05:30Z`; not manually dismissed.
+- Code now requires validated X.509 chains, certificate validity and hostname before any TLS application probe.
+- Stable `v3.0.0` is NOT authorized/published. Documentation, service matrix, G4 RC3 decision, G6 operational scope, G7 native-inventory/SBOM and final 11-gate review remain independent.
+
+```text
+G5_PR_46=MERGED_VERIFIED
+G5_MAIN_SHA=62fa8c3a7e1b0d8e6002a302f19b6484ea0d75c1
+G5_POSTMERGE_CI=SUCCESS_32_OF_32
+G5_CODEQL=SUCCESS
+G5_ALERT_2=FIXED_OBSERVED
+G2_G3_G7=PREPARATION_NOT_INTEGRATED
+FINAL_RC=PENDING_ARCHITECT_DECISION
+G6_PRODUCTION_DURATION_SOAK=NOT_CERTIFIED
+STABLE_RELEASE=NO_GO
+```

@@ -3,9 +3,15 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"io"
+	"math/big"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -501,15 +507,12 @@ func TestTLSObservationPolicyRejectsNonCanonicalProbesBeforeDial(t *testing.T) {
 	}
 }
 
-func TestTLSEvidenceNeverClaimsUnverifiedCertificateIsVerified(t *testing.T) {
+func TestTLSUnknownAuthorityIsRejectedBeforeCapture(t *testing.T) {
 	t.Parallel()
-
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Server", "CicadaPort-Test")
 		w.WriteHeader(http.StatusNoContent)
 	}))
 	defer server.Close()
-
 	host, portText, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "https://"))
 	if err != nil {
 		t.Fatal(err)
@@ -519,20 +522,124 @@ func TestTLSEvidenceNeverClaimsUnverifiedCertificateIsVerified(t *testing.T) {
 		t.Fatal(err)
 	}
 	plan := selectProbe(host, 443)
-	plan.payload = buildHTTPProbe(host)
-	plan.useTLS = true
 	outcome := probeServiceWithPlan(context.Background(), host, port, 2*time.Second, plan)
-	if outcome.evidence.TLS == nil || !outcome.evidence.TLS.TLSNegotiated {
-		t.Fatalf("TLS evidence missing: %+v", outcome.evidence)
+	if outcome.result.Status != "error" || outcome.result.Banner != nil {
+		t.Fatalf("unknown CA produced a banner: %+v", outcome.result)
 	}
-	if !outcome.evidence.TLS.CertificatePresent || outcome.evidence.TLS.CertificateVerified {
-		t.Fatalf("certificate truthfulness violated: %+v", outcome.evidence.TLS)
+	if outcome.evidence.Phase != "tls_handshake" || outcome.evidence.TLS != nil {
+		t.Fatalf("unknown CA incorrectly certified: %+v", outcome.evidence)
 	}
-	if outcome.evidence.TLS.VerificationError != "verification_not_performed_observation_mode" {
-		t.Fatalf("verification error = %q", outcome.evidence.TLS.VerificationError)
+}
+
+func TestTLSVerifiedCertificateProducesTrueEvidence(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+	host, portText, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "https://"))
+	if err != nil {
+		t.Fatal(err)
 	}
-	if len(outcome.evidence.TLS.CertificateSHA256) != 64 {
-		t.Fatalf("certificate hash = %q", outcome.evidence.TLS.CertificateSHA256)
+	port, err := strconv.Atoi(portText)
+	if err != nil {
+		t.Fatal(err)
+	}
+	roots := x509.NewCertPool()
+	roots.AddCert(server.Certificate())
+	plan := selectProbe(host, 443)
+	connection, evidence, phase, err := openProbeConnectionWithTrustRoots(
+		context.Background(), host, port, plan, phaseTimeoutsFromLegacy(2*time.Second), roots,
+	)
+	if err != nil {
+		t.Fatalf("verified handshake failed: phase=%s err=%v", phase, err)
+	}
+	defer connection.Close()
+	if evidence == nil || !evidence.TLSNegotiated || !evidence.CertificateVerified ||
+		!evidence.CertificatePresent || evidence.VerificationError != "" ||
+		len(evidence.CertificateSHA256) != 64 {
+		t.Fatalf("verified TLS evidence inconsistent: %+v", evidence)
+	}
+}
+
+func TestTLSWrongHostnameIsRejectedWithTrustedRoot(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+	_, portText, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "https://"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	port, err := strconv.Atoi(portText)
+	if err != nil {
+		t.Fatal(err)
+	}
+	roots := x509.NewCertPool()
+	roots.AddCert(server.Certificate())
+	// httptest server certificate is issued to 127.0.0.1, not localhost.
+	host := "localhost"
+	plan := selectProbe(host, 443)
+	connection, evidence, phase, err := openProbeConnectionWithTrustRoots(
+		context.Background(), host, port, plan, phaseTimeoutsFromLegacy(2*time.Second), roots,
+	)
+	if connection != nil {
+		connection.Close()
+	}
+	if err == nil || phase != "tls_handshake" || evidence != nil {
+		t.Fatalf("wrong TLS hostname accepted: phase=%s err=%v evidence=%+v", phase, err, evidence)
+	}
+}
+
+func TestTLSExpiredCertificateIsRejectedWithTrustedRoot(t *testing.T) {
+	t.Parallel()
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now()
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(8812),
+		NotBefore:    now.Add(-72 * time.Hour), NotAfter: now.Add(-48 * time.Hour),
+		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1")},
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+	}
+	der, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cert, err := x509.ParseCertificate(der)
+	if err != nil {
+		t.Fatal(err)
+	}
+	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	server.TLS = &tls.Config{Certificates: []tls.Certificate{{Certificate: [][]byte{der}, PrivateKey: key}}}
+	server.StartTLS()
+	defer server.Close()
+	host, portText, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "https://"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	port, err := strconv.Atoi(portText)
+	if err != nil {
+		t.Fatal(err)
+	}
+	roots := x509.NewCertPool()
+	roots.AddCert(cert)
+	connection, evidence, phase, err := openProbeConnectionWithTrustRoots(
+		context.Background(), host, port, selectProbe(host, 443),
+		phaseTimeoutsFromLegacy(2*time.Second), roots,
+	)
+	if connection != nil {
+		connection.Close()
+	}
+	if err == nil || phase != "tls_handshake" || evidence != nil {
+		t.Fatalf("expired certificate accepted: phase=%s err=%v evidence=%+v", phase, err, evidence)
 	}
 }
 

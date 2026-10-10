@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -507,7 +508,7 @@ func tlsVersionName(version uint16) string {
 func certificateEvidence(state tls.ConnectionState) *TLSEvidence {
 	evidence := &TLSEvidence{
 		TLSNegotiated: true, CertificatePresent: len(state.PeerCertificates) > 0,
-		CertificateVerified: false, VerificationError: "verification_not_performed_observation_mode",
+		CertificateVerified: len(state.VerifiedChains) > 0, VerificationError: "",
 		ProtocolVersion: tlsVersionName(state.Version), CipherSuite: tls.CipherSuiteName(state.CipherSuite),
 		ALPN: state.NegotiatedProtocol, ChainLength: len(state.PeerCertificates), SANDNS: []string{}, SANIP: []string{},
 	}
@@ -547,9 +548,9 @@ func watchConnection(ctx context.Context, connection net.Conn) func() {
 	return func() { close(finished) }
 }
 
-// validateTLSObservationPlan enforces the narrow, unauthenticated TLS
-// reconnaissance boundary before any network activity. The transport MUST NOT
-// be reused for authenticated requests or for transmitting secrets.
+// validateTLSObservationPlan enforces a narrow TLS observation boundary before
+// any network activity. Successful TLS handshakes must authenticate the peer;
+// the transport MUST NOT transmit credentials or arbitrary active payloads.
 func validateTLSObservationPlan(host string, plan probePlan) error {
 	if !plan.useTLS {
 		return nil
@@ -579,6 +580,12 @@ func validateTLSObservationPlan(host string, plan probePlan) error {
 }
 
 func openProbeConnection(ctx context.Context, host string, port int, plan probePlan, timeouts phaseTimeouts) (net.Conn, *TLSEvidence, string, error) {
+	return openProbeConnectionWithTrustRoots(ctx, host, port, plan, timeouts, nil)
+}
+
+// openProbeConnectionWithTrustRoots is an internal test seam. Production supplies nil,
+// which means the OS trust store. It is not a CLI or JSONL configuration option.
+func openProbeConnectionWithTrustRoots(ctx context.Context, host string, port int, plan probePlan, timeouts phaseTimeouts, roots *x509.CertPool) (net.Conn, *TLSEvidence, string, error) {
 	if err := validateTLSObservationPlan(host, plan); err != nil {
 		return nil, nil, "connect", err
 	}
@@ -595,14 +602,11 @@ func openProbeConnection(ctx context.Context, host string, port int, plan probeP
 		return nil, nil, "tls_handshake", err
 	}
 	normalizedHost := normalizeHost(host)
-	// Observation-only: untrusted/self-signed certificates must remain observable.
-	// InsecureSkipVerify does NOT authenticate the endpoint; the result explicitly
-	// records certificate_verified=false and MUST NOT be used for trust decisions.
-	// validateTLSObservationPlan rejects active/noncanonical requests before dial.
-	tlsConfig := &tls.Config{InsecureSkipVerify: true, MinVersion: tls.VersionTLS12}
-	if net.ParseIP(normalizedHost) == nil {
-		tlsConfig.ServerName = normalizedHost
-	}
+	// Fail closed: crypto/tls validates certificate chain, validity and hostname
+	// before any probe payload is written. Self-signed or unknown-CA servers
+	// will not produce banner evidence unless explicitly trusted by OS roots.
+	// The private test seam can inject a trust pool; production always uses OS roots.
+	tlsConfig := &tls.Config{MinVersion: tls.VersionTLS12, ServerName: normalizedHost, RootCAs: roots}
 	tlsConnection := tls.Client(rawConnection, tlsConfig)
 	if err := tlsConnection.HandshakeContext(ctx); err != nil {
 		_ = rawConnection.Close()

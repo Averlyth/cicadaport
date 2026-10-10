@@ -56,11 +56,15 @@ def test_reading_is_incremental_bounded_and_hashed() -> None:
 
 
 def test_tls_evidence_is_truthful() -> None:
-    assert "CertificateVerified: false" in GO
-    assert "verification_not_performed_observation_mode" in GO
+    # G5 Política A: X.509 verificado; la observación histórica no se reescribe.
+    assert "CertificateVerified: len(state.VerifiedChains) > 0" in GO
+    assert "RootCAs: roots" in GO
+    assert "ServerName: normalizedHost" in GO
+    assert "tlsConnection.HandshakeContext(ctx)" in GO
+    assert "InsecureSkipVerify: true" not in GO
+    assert "verification_not_performed_observation_mode" not in GO
     assert "CertificateSHA256" in GO
     assert "PeerCertificates" in GO
-    assert "InsecureSkipVerify: true" in GO
     assert "InsecureSkipVerify: true" not in IMPLEMENTATION
 
 

@@ -171,20 +171,34 @@ def installed_snapshot(wheel: Path, pip_inspect: dict, reports: list[dict]) -> t
             "name": name, "version": str(Version(str(meta.get("version")))),
             "requires_dist": sorted(set(meta.get("requires_dist") or [])),
         }
+    # Bind each hash to the *installed* distribution identity, not just its
+    # normalized name. pip report alone is not a trusted inventory of versions.
+    require(isinstance(reports, list) and reports, "pip install report is empty")
     hashes = {target: digest(wheel)}
+    seen_report: set[str] = set()
     for item in reports:
+        require(isinstance(item, dict), "malformed pip install report entry")
         meta = item.get("metadata", {})
-        if not isinstance(meta.get("name"), str):
-            continue
-        name = canonicalize_name(meta["name"])
-        info = item.get("download_info") or {}
-        archives = (info.get("archive_info") or {}).get("hashes") or {}
-        value = archives.get("sha256")
+        require(isinstance(meta, dict), "missing pip report metadata")
+        raw_name = meta.get("name")
+        raw_version = meta.get("version")
+        require(isinstance(raw_name, str) and raw_name and
+                isinstance(raw_version, str) and raw_version,
+                "pip report missing distribution name/version")
+        name = canonicalize_name(raw_name)
+        require(name in installed, "pip report distribution not installed: " + name)
+        require(name not in seen_report, "duplicate pip report distribution: " + name)
+        require(Version(raw_version) == Version(installed[name]["version"]),
+                "pip report/inspect version mismatch: " + name)
+        seen_report.add(name)
         if name != target:
+            info = item.get("download_info") or {}
+            archives = (info.get("archive_info") or {}).get("hashes") or {}
+            value = archives.get("sha256")
             require(isinstance(value, str) and SHA.fullmatch(value) is not None,
                     "pip download report lacks sha256: " + name)
-            require(name not in hashes, "duplicate archive: " + name)
             hashes[name] = value
+    require(target in seen_report, "application wheel missing from pip report")
     # Traverse installed metadata first; do not demand hashes for bootstrap pip.
     universe = []
     for name, item in sorted(installed.items()):

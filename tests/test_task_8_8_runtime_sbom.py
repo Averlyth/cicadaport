@@ -98,6 +98,7 @@ from scripts.runtime_sbom import (  # noqa: E402
     SCHEMA,
     digest,
     marker_environment,
+    installed_snapshot,
     resolve,
     validated_snapshot,
 )
@@ -215,3 +216,89 @@ def test_g7_runtime_rejects_unresolved_direct_url(tmp_path: Path) -> None:
     ]
     with pytest.raises(ValueError, match="direct URL"):
         resolve(wheel, nodes, marker_environment())
+
+
+def g7_pip_join_fixture(tmp_path: Path):
+    """Synthetic inspect/report pair for a real METADATA-bearing test wheel."""
+    wheel = make_wheel(tmp_path, "textual<9,>=0.80")
+    inspected = {
+        "version": "1",
+        "installed": [
+            {
+                "metadata": {
+                    "name": "portscanner-pro",
+                    "version": "3.0.0",
+                    "requires_dist": ["textual<9,>=0.80"],
+                }
+            },
+            {"metadata": {"name": "Textual", "version": "1.0", "requires_dist": []}},
+            {"metadata": {"name": "pip", "version": "26.2.1", "requires_dist": []}},
+        ],
+        "environment": marker_environment(),
+    }
+    report = [
+        {"metadata": {"name": "portscanner-pro", "version": "3.0.0"}},
+        {
+            "metadata": {"name": "textual", "version": "1.0"},
+            "download_info": {"archive_info": {"hashes": {"sha256": "a" * 64}}},
+        },
+    ]
+    return wheel, inspected, report
+
+
+def test_g7_r1_pip_hash_bound_to_installed_version(tmp_path: Path) -> None:
+    wheel, inspected, report = g7_pip_join_fixture(tmp_path)
+    nodes, edges = installed_snapshot(wheel, inspected, report)
+    assert [n["name"] for n in nodes] == ["portscanner-pro", "textual"]
+    assert next(n for n in nodes if n["name"] == "textual")["sha256"] == "a" * 64
+    assert next(e for e in edges if e["name"] == "portscanner-pro")["depends_on"] == [
+        "textual"
+    ]
+
+
+def test_g7_r1_pep440_equivalent_version_is_accepted(tmp_path: Path) -> None:
+    wheel, inspected, report = g7_pip_join_fixture(tmp_path)
+    report[1]["metadata"]["name"] = "TEXTUAL"
+    report[1]["metadata"]["version"] = "1.0.0"
+    nodes, _ = installed_snapshot(wheel, inspected, report)
+    assert len(nodes) == 2
+
+
+@pytest.mark.parametrize(
+    "tamper",
+    [
+        "version_mismatch",
+        "missing_runtime_record",
+        "missing_root_record",
+        "duplicated_runtime_record",
+        "duplicated_root_record",
+        "orphan_report_record",
+        "wrong_root_version",
+        "malformed_report_sha",
+    ],
+)
+def test_g7_r1_inconsistent_pip_report_fails_closed(
+    tmp_path: Path, tamper: str
+) -> None:
+    import copy
+
+    wheel, inspected, original_report = g7_pip_join_fixture(tmp_path)
+    report = copy.deepcopy(original_report)
+    if tamper == "version_mismatch":
+        report[1]["metadata"]["version"] = "2.0"
+    elif tamper == "missing_runtime_record":
+        report.pop(1)
+    elif tamper == "missing_root_record":
+        report.pop(0)
+    elif tamper == "duplicated_runtime_record":
+        report.append(copy.deepcopy(report[1]))
+    elif tamper == "duplicated_root_record":
+        report.append(copy.deepcopy(report[0]))
+    elif tamper == "orphan_report_record":
+        report.append({"metadata": {"name": "not-installed", "version": "1.0"}})
+    elif tamper == "wrong_root_version":
+        report[0]["metadata"]["version"] = "3.0.1"
+    elif tamper == "malformed_report_sha":
+        report[1]["download_info"]["archive_info"]["hashes"]["sha256"] = "bad"
+    with pytest.raises(ValueError):
+        installed_snapshot(wheel, inspected, report)

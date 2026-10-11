@@ -24,6 +24,7 @@ from packaging.requirements import Requirement
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+from scripts.runtime_sbom import validated_snapshot, COVERAGE
 
 LOCK = ROOT / "requirements-release.txt"
 PYPROJECT = ROOT / "pyproject.toml"
@@ -64,7 +65,8 @@ def python_components() -> list[dict]:
                 "bom-ref": f"pkg:pypi/{normalize_name(name)}@{version}",
                 "purl": f"pkg:pypi/{normalize_name(name)}@{version}",
                 "hashes": [],
-                "properties": [{"name": "cicadaport:ecosystem", "value": "python"}],
+                "properties": [{"name": "cicadaport:ecosystem", "value": "python"},
+                               {"name": "cicadaport:role", "value": "build-security-tools"}],
             }
             components.append(current)
         if current is not None:
@@ -182,11 +184,47 @@ def main() -> None:
     wheel = Path(sys.argv[2])
     commit = git("rev-parse", "HEAD")
     candidate_tree = git("write-tree")
-    runtime = runtime_components_from_wheel(wheel)
-    components = python_components() + rust_components() + go_components() + runtime
-    components.sort(
-        key=lambda item: (item["purl"], item["name"], item.get("version", ""))
-    )
+    # Require an observed pip-installed resolution; a direct declaration alone
+    # MUST NOT be represented as a certified transitive runtime closure.
+    snapshot = json.loads((output.parent / "RUNTIME-RESOLUTION.json").read_text("utf-8"))
+    runtime_nodes, runtime_edges = validated_snapshot(wheel, snapshot)
+    runtime = []
+    for node in runtime_nodes:
+        if node["name"] == "portscanner-pro":
+            continue
+        ref = f'pkg:pypi/{node["name"]}@{node["version"]}'
+        runtime.append({"type": "library", "name": node["name"],
+                        "version": node["version"], "bom-ref": ref, "purl": ref,
+                        "hashes": [{"alg": "SHA-256", "content": node["sha256"]}],
+                        "properties": [{"name": "cicadaport:role", "value": "runtime-resolved"}]})
+    components = python_components() + rust_components() + go_components()
+    by_ref = {item["bom-ref"]: item for item in components}
+    if len(by_ref) != len(components):
+        raise ValueError("Duplicate build SBOM bom-ref")
+    for item in runtime:
+        ref = item["bom-ref"]
+        if ref in by_ref:
+            # Same version in tooling and runtime: one physical node, both roles.
+            existing = by_ref[ref]
+            known_hashes = set(h["content"] for h in existing.get("hashes", []))
+            observed = item["hashes"][0]["content"]
+            if known_hashes and observed not in known_hashes:
+                raise ValueError("Build lock and runtime artifact hash conflict")
+            existing["properties"].append({"name": "cicadaport:role", "value": "runtime-resolved"})
+            if not existing.get("hashes"):
+                existing["hashes"] = item["hashes"]
+        else:
+            components.append(item)
+            by_ref[ref] = item
+    components.sort(key=lambda item: (item["purl"], item["name"], item.get("version", "")))
+    runtime_refs = {n["name"]: f'pkg:pypi/{n["name"]}@{n["version"]}'
+                    for n in runtime_nodes if n["name"] != "portscanner-pro"}
+    graph = []
+    for edge in runtime_edges:
+        if edge["name"] == "portscanner-pro":
+            continue
+        graph.append({"ref": runtime_refs[edge["name"]],
+                      "dependsOn": sorted(runtime_refs[x] for x in edge["depends_on"])})
     application_ref = f"pkg:pypi/portscanner-pro@{__version__}?commit={commit}"
     namespace = uuid.UUID("ea7dd7e2-c7e2-5d5c-90e8-70fb6ad604f0")
     serial = uuid.uuid5(
@@ -214,13 +252,16 @@ def main() -> None:
                 "properties": [
                     {"name": "cicadaport:git-commit", "value": commit},
                     {"name": "cicadaport:git-candidate-tree", "value": candidate_tree},
+                    {"name": "cicadaport:wheel-sha256", "value": snapshot["wheel_sha256"]},
+                    {"name": "cicadaport:runtime-python", "value": snapshot["environment"]["python_version"]},
+                    {"name": "cicadaport:runtime-os-id", "value": snapshot["os_release"]},
                     {
                         "name": "cicadaport:contract",
                         "value": "EIVRC-CICADAPORT-5.6-001",
                     },
                     {
                         "name": "cicadaport:runtime-coverage",
-                        "value": "direct-declarations-only-transitives-unresolved",
+                        "value": COVERAGE,
                     },
                 ],
             },
@@ -235,12 +276,10 @@ def main() -> None:
             },
         },
         "components": components,
-        "dependencies": [
-            {
-                "ref": application_ref,
-                "dependsOn": sorted(item["bom-ref"] for item in runtime),
-            }
-        ],
+        "dependencies": sorted([
+            {"ref": application_ref, "dependsOn": sorted(runtime_refs[x]
+                for x in next(e for e in runtime_edges if e["name"] == "portscanner-pro")["depends_on"])}
+        ] + graph, key=lambda item: item["ref"]),
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(

@@ -24,6 +24,11 @@ test_artifact() {
   "$environment/bin/python" -m pip check
   mkdir -p "$outside"
   (cd "$outside" && "$environment/bin/python" "$SMOKE")
+  # Re-evaluate runtime reachability on this exact Python/Ubuntu matrix cell;
+  # the build-cell SBOM is not silently treated as all-platform lockstep.
+  "$PYTHON" "$ROOT/scripts/runtime_sbom.py" verify-installed \
+    "$environment/bin/python" "$wheel_path" \
+    "$ARTIFACT_DIRECTORY/cicadaport.cdx.json"
 }
 
 test_artifact "$wheel_path" wheel

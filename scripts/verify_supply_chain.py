@@ -192,39 +192,59 @@ def verify_artifact_documents(artifact_directory: Path | None) -> None:
     }
     if properties.get("cicadaport:git-candidate-tree") != current_tree:
         fail("CycloneDX SBOM is not bound to the current candidate tree.")
-    if properties.get("cicadaport:runtime-coverage") != (
-        "direct-declarations-only-transitives-unresolved"
-    ):
-        fail("CycloneDX does not declare its runtime coverage limit")
+    from runtime_sbom import COVERAGE, validated_snapshot
+    if properties.get("cicadaport:runtime-coverage") != COVERAGE:
+        fail("CycloneDX runtime transitive resolution not certified")
     wheels = sorted(directory.glob("*.whl"))
     if len(wheels) != 1:
         fail("Exactly one release wheel required")
-    from generate_cyclonedx_sbom import runtime_components_from_wheel
-
-    expected = runtime_components_from_wheel(wheels[0])
-    actual = [
-        component
-        for component in sbom_data.get("components", [])
-        if any(
-            prop.get("name") == "cicadaport:role"
-            and prop.get("value") == "runtime-declared"
-            for prop in component.get("properties", [])
-        )
-    ]
-    expected.sort(key=lambda item: (item["purl"], item["name"]))
-    if actual != expected:
-        fail("CycloneDX direct runtime inventory differs from wheel")
+    snapshot_path = directory / "RUNTIME-RESOLUTION.json"
+    if not snapshot_path.is_file():
+        fail("Missing independent installed runtime resolution snapshot")
+    snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    expected_nodes, expected_edges = validated_snapshot(wheels[0], snapshot)
+    if properties.get("cicadaport:wheel-sha256") != snapshot["wheel_sha256"]:
+        fail("SBOM exact wheel hash does not match runtime resolution")
+    if properties.get("cicadaport:runtime-python") != snapshot["environment"]["python_version"]:
+        fail("SBOM Python build-cell mismatch")
+    if properties.get("cicadaport:runtime-os-id") != snapshot["os_release"]:
+        fail("SBOM OS build-cell mismatch")
+    by_ref = {component.get("bom-ref"): component
+              for component in sbom_data.get("components", [])}
+    if len(by_ref) != len(sbom_data.get("components", [])):
+        fail("Duplicate SBOM bom-ref")
+    expected_refs = {node["name"]: f'pkg:pypi/{node["name"]}@{node["version"]}'
+                     for node in expected_nodes if node["name"] != "portscanner-pro"}
+    for node in expected_nodes:
+        if node["name"] == "portscanner-pro":
+            continue
+        ref = expected_refs[node["name"]]
+        component = by_ref.get(ref, {})
+        if (component.get("name") != node["name"] or
+                component.get("version") != node["version"] or
+                component.get("purl") != ref):
+            fail("Missing runtime component or incorrect version/purl: " + ref)
+        if {h.get("content") for h in component.get("hashes", [])} != {node["sha256"]} and node["sha256"] not in {h.get("content") for h in component.get("hashes", [])}:
+            fail("Runtime component hash missing: " + ref)
+        if not any(p.get("name") == "cicadaport:role" and
+                   p.get("value") == "runtime-resolved" for p in component.get("properties", [])):
+            fail("Runtime component role missing: " + ref)
     app_ref = sbom_data["metadata"]["component"]["bom-ref"]
-    expected_graph = [
-        {
-            "ref": app_ref,
-            "dependsOn": sorted(item["bom-ref"] for item in expected),
-        }
-    ]
+    expected_graph = []
+    for entry in expected_edges:
+        source = app_ref if entry["name"] == "portscanner-pro" else expected_refs[entry["name"]]
+        expected_graph.append({"ref": source, "dependsOn": sorted(expected_refs[x]
+                                                                     for x in entry["depends_on"])})
+    expected_graph.sort(key=lambda item: item["ref"])
     if sbom_data.get("dependencies") != expected_graph:
-        fail("CycloneDX direct dependency graph mismatch")
+        fail("CycloneDX complete runtime dependency graph mismatch")
+    # Every declared runtime dependency must have a resolved, versioned ref.
+    from generate_cyclonedx_sbom import runtime_components_from_wheel
+    declared = runtime_components_from_wheel(wheels[0])
+    if not declared or not all(item["name"] in expected_refs for item in declared):
+        fail("Runtime direct wheel requirements missing from resolved closure")
     print("CYCLONEDX_DIRECT_RUNTIME_COVERAGE=PASS")
-    print("CYCLONEDX_TRANSITIVE_RUNTIME_CLOSURE=NOT_CERTIFIED")
+    print("CYCLONEDX_TRANSITIVE_RUNTIME_CLOSURE=PASS_BUILD_CELL")
     manifest_data = json.loads(manifest.read_text(encoding="utf-8"))
     if manifest_data.get("schema") != "cicadaport-release-manifest-v2":
         fail("Invalid release manifest.")

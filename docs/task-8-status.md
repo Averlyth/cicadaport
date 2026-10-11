@@ -880,3 +880,25 @@ FINAL_RC=PENDING_ARCHITECT_DECISION
 G6_PRODUCTION_DURATION_SOAK=NOT_CERTIFIED
 STABLE_RELEASE=NO_GO
 ```
+
+
+## Stage G3 + G4 — Aprobación humana conjunta y excepción RC3 (2026-10-11)
+
+Esta adenda refleja una decisión **posterior** a los cortes de Stage G5 y G7; no reescribe actas ni estados históricos anteriores. La decisión del arquitecto fue **explícita y separada** para G3 (20 criterios de servicio, solamente en alcance probado) y G4 (excepción procedimental de publicación RC3, no equivalencia binaria). El expediente consolidado se incorpora en [acta G3+G4](audits/task-8-8-g3-g4-joint-decisions-20261011.md).
+
+La base técnica anterior a esta PR documental es el merge protegido y firmado `main@53a3bb06cdade11d21c0f706fbcbc3117a34abc8` (PR #48). Su CI posmerge `38169376262` aprobó 28/28 jobs; 32/32 checks del SHA resultaron exitosos, incluido CodeQL. La matriz Ubuntu/Python aprobó 8/8 celdas, con wheel y sdist probados fuera del checkout. La nueva PR documental requerirá sus propios checks, firma e integración autorizada; estos hechos previos no son prueba futura de esa integración.
+
+G3 comprende únicamente los 20 alcances aceptados, sin TUI manual E2E instalado, sin update/rollback productivos y sin prueba representativa de 30 minutos de Ubuntu en producción. G4 exime **publicar** `v3.0.0-rc.3`; su fuente fue probada en `c27d13a0e7643f1ee6cc6fd4a20e3dce14643176`, pero no se creó tag ni GitHub Release. Existen 26 commits y 47 archivos de diferencia hasta la fuente aprobada para comparación; **no** se afirma identidad binaria ni funcional estricta. La excepción no autoriza `v3.0.0` ni cierra los once gates de 8.8.
+
+```text
+G3_DECISION=ARCHITECT_APPROVED_SCOPED_20_OF_20
+G4_DECISION=ARCHITECT_APPROVED_RC3_PUBLICATION_WAIVER
+G4_RC3_SOURCE=VALIDATED_NOT_PUBLISHED
+G4_SOURCE_DELTA=26_COMMITS_47_FILES
+G7_MAIN_SOURCE=53a3bb06cdade11d21c0f706fbcbc3117a34abc8
+G7_MAIN_CI=38169376262_SUCCESS_28_OF_28
+G3_G4_DOCUMENTATION=AUTHORIZED_FOR_ONE_SIGNED_PR_PENDING_CI_AND_MERGE
+G3_G4_AUTO_MERGE=PROHIBITED
+STABLE_RELEASE=NO_GO
+TASK_8_9_PUBLICATION=NOT_AUTHORIZED
+```

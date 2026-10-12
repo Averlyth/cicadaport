@@ -935,3 +935,38 @@ STABLE_TAG=NOT_AUTHORIZED
 STABLE_PUBLICATION=NOT_AUTHORIZED
 TASK_8_FINAL_CLOSURE=NOT_AUTHORIZED
 ```
+
+
+## TASK 8.8 — Dictamen GO técnico acotado del arquitecto (2026-10-12)
+
+Esta adenda registra una decisión posterior a la PR #50 y no altera sus
+observaciones históricas. El arquitecto ratificó expresamente los once gates
+de TASK 8.8 sobre `main@9169f832a2a4656643bb978b84f3305699ac21b5`,
+certificó la ausencia de bloqueadores conocidos dentro del alcance probado y
+aceptado, y autorizó **únicamente** `GO_TECHNICAL_BOUNDED`.
+
+El [dictamen formal de TASK 8.8](audits/task-8-8-go-technical-bounded-20261012.md)
+conserva la matriz de soporte, la excepción G4, G3 20/20, el riesgo
+`R-OPS-SOAK-01` y las limitaciones explícitas de endurance, TUI instalada,
+UPDATE_PLAN, ROLLBACK_PLAN y política TLS de referencia. La publicación de
+v3.0.0 y toda operación de TASK 8.9 exigen autorización independiente.
+
+La copia versionada conserva el contenido del acta emitida; se normalizaron
+solo sus metadatos Markdown para evitar espacios terminales de Git. SHA-256
+del acta emitida: `6e532c8de94ce2f5c317afde5b1c0f0d867ec80d343fd47306331a5cf7507604`.
+
+```text
+TASK88_GO_SOURCE=9169f832a2a4656643bb978b84f3305699ac21b5
+TASK_8_8=GO_TECHNICAL_BOUNDED
+ELEVEN_GATES=RATIFIED_11_OF_11
+OPEN_BLOCKERS=0_SCOPED_ARCHITECT_CERTIFIED
+POSTMERGE_CI=SUCCESS_28_OF_28
+POSTMERGE_CODEQL=SUCCESS_4_OF_4
+POSTMERGE_CHECKS=SUCCESS_32_OF_32
+R_OPS_SOAK_01=ARCHITECT_ACCEPTED_BOUNDED_STABLE_DISTRIBUTION
+GO_RECORD=DOCUMENTARY_PR_PREPARATION_ONLY
+TASK_8_9=NOT_AUTHORIZED
+STABLE_TAG=NOT_AUTHORIZED
+STABLE_PUBLICATION=NOT_AUTHORIZED
+TASK_8_CLOSURE=NOT_AUTHORIZED
+```

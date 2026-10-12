@@ -69,17 +69,20 @@ Python distribution versions use the equivalent PEP 440 spelling.
   banner collection; no raw, discovery or vulnerability capabilities were
   introduced.
 
-## [3.0.0] - Unreleased (stable GO and publication pending)
+## [3.0.0] - Unreleased (scoped technical GO approved; publication pending)
 
 ### Release preparation
 
 - Prepared coherent version, supported Linux package metadata, build artifact
   identity and Task 8.8/8.9 source-integrity controls.
-- Integrated signed Stage R.3 and CodeQL remediations and the bounded Task 8.7
-  source-only residual risk decision. CodeQL Go TLS alert #2 remains OPEN/HIGH.
-- The stable risk disposition, production endurance, signed v3.0.0 tag, GitHub
-  Release, package distribution, and post-release verification are NOT yet
-  authorized or complete.
+- Integrated signed Stage R.3 dependency and CodeQL remediations; the Go TLS
+  finding #2 was verified as fixed. The internal Python TLS reference path
+  is not an authenticated public client.
+- TASK 8.8 received a signed, documented scoped technical GO (eleven gates);
+  R-OPS-SOAK-01 was accepted only for restricted distribution, without a
+  production endurance or SLO guarantee. The signed v3.0.0 tag, GitHub
+  Release, package publication, and post-release verification are not
+  authorized or completed.
 
 ## [3.0.0-rc.3] - Unreleased
 

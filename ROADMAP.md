@@ -285,3 +285,20 @@ La versión fuente actual es `3.0.0` (candidata estable no publicada) en `main@6
 - Las deudas transferidas se registran en la siguiente task sin reabrir TASK 4.
 - Las pruebas de red se limitan a loopback, laboratorios propios o alcance
   expresamente autorizado.
+
+
+## Actualización de estado — TASK 8.8 y preparación de TASK 8.9 (2026-10-12)
+
+Las menciones anteriores de gates pendientes son cortes históricos. El dictamen
+`GO-CICADAPORT-8.8-20261012-001` ratificó los once gates sobre
+`main@9169f832a2a4656643bb978b84f3305699ac21b5` y fue integrado
+mediante PR #51 como merge firmado
+`8e33e8484a9e5fb8eb049c468a100d44767975c8`, con 28/28 jobs de CI,
+4/4 analizadores CodeQL y 32/32 checks del nuevo commit.
+
+TASK 8.9 está autorizada **solo para preparación y preflight**. La inspección
+del artefacto interno CI `11758285680` pasó las comprobaciones de hashes,
+manifest, SBOM y las attestations del wheel y sdist, sin publicación.
+No hay autorización para tag `v3.0.0`, GitHub Release, publicación de paquetes
+o cierre de TASK 8. El soporte sigue limitado a Linux x86_64, Ubuntu 22.04/24.04,
+Python 3.10–3.13, Rust 1.97.1 y Go 1.26.9.

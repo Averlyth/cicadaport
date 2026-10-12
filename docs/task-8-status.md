@@ -970,3 +970,39 @@ STABLE_TAG=NOT_AUTHORIZED
 STABLE_PUBLICATION=NOT_AUTHORIZED
 TASK_8_CLOSURE=NOT_AUTHORIZED
 ```
+
+
+## TASK 8.9 — Preparación y verificación de artefactos (corte 2026-10-12)
+
+Esta adenda no altera el dictamen histórico ni convierte GO técnico acotado
+en autorización para publicar. La PR #51 se integró como merge firmado
+`8e33e8484a9e5fb8eb049c468a100d44767975c8` con padres
+`9169f832a2a4656643bb978b84f3305699ac21b5` y
+`9d7cea26b1b88af82613339e47586c898ffa4450`; CI posmerge 28/28,
+CodeQL 4/4, checks 32/32 y verificación de provenance en push.
+
+El arquitecto autorizó exclusivamente la preparación y preflight de TASK 8.9.
+El artefacto de CI `11758285680` del workflow `38273007353` fue inspeccionado
+sin reconstrucción ni publicación. Se verificaron 12 archivos, SHA-256,
+manifiesto vinculado al commit y al árbol, CycloneDX 1.6, sujetos del plan,
+y attestations criptográficas de wheel y sdist (`gh attestation verify`).
+El primer intento encontró una discrepancia de representación de prefijos
+`./` en el comparador; la recuperación validó los sujetos exactos sin
+modificar artefactos ni sus hashes.
+
+Se deben conciliar antes de publicación README, SECURITY, CHANGELOG y
+las notas de release. Si se integran cambios en fuente, se deberá ejecutar
+un CI exacto nuevo y verificar los artefactos definitivos del nuevo SHA.
+
+```text
+TASK_8_8=GO_TECHNICAL_BOUNDED_DOCUMENTED
+TASK_8_9=AUTHORIZED_PREPARATION_PREFLIGHT_ONLY
+TASK89_BASE_MAIN=8e33e8484a9e5fb8eb049c468a100d44767975c8
+TASK89_INTERNAL_ARTIFACT=11758285680_INSPECTION_PASS
+TASK89_INTERNAL_ARTIFACT_ZIP_SHA256=277ef29dcfbb0caa986d94bd49ec2930f8fbad35d3df75a1370ba2225933b404
+TASK89_PUBLIC_DOCUMENTATION=PROPOSAL_NOT_INTEGRATED
+STABLE_TAG=NOT_AUTHORIZED
+GITHUB_RELEASE=NOT_AUTHORIZED
+PACKAGE_PUBLICATION=NOT_AUTHORIZED
+TASK_8_CLOSURE=NOT_AUTHORIZED
+```

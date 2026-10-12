@@ -32,13 +32,13 @@ The current source tree identifies the application as:
 | Stable release | Not published |
 | Primary platform | Linux x86_64 |
 
-`3.0.0` is the current stable source candidate under TASK 8.8/8.9 review; it is **not yet a published GitHub Release** and has no stable GO authorization.
+`3.0.0` is the current stable source candidate. The eleven TASK 8.8 gates received a **scoped technical GO**; the signed stable tag, GitHub Release and package publication remain **separately unauthorized**.
 
 The latest published prerelease remains [v3.0.0-rc.1](https://github.com/Averlyth/cicadaport/releases/tag/v3.0.0-rc.1).
 
 Development state and published-release state are intentionally treated as separate concerns.
 
-For current stable-source preparation, see [TASK 8.8/8.9](docs/audits/task-8-8-9-stable-source-prepublication.md) and [enterprise acceptance](docs/task-8-acceptance.md). RC3 remains a historical, unpublished candidate; stable GO and publication require separate approval.
+For the current scoped technical GO, see [the TASK 8.8 decision](docs/audits/task-8-8-go-technical-bounded-20261012.md) and [the TASK 8 status ledger](docs/task-8-status.md). RC3 remains a historical, unpublished source candidate. The TASK 8.9 publication decision is independent and has not been granted.
 
 ---
 

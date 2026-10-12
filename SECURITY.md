@@ -8,14 +8,14 @@ Every expanded target, IP address, hostname, range, CIDR entry, and target-file 
 
 The source tree currently identifies CicadaPort as `3.0.0` (`3.0.0` in Python package metadata), prepared as a stable source candidate.
 
-`3.0.0` is undergoing the independent stable GO/NO-GO and publication gates. It is not currently a published GitHub Release.
+`3.0.0` passed the scoped TASK 8.8 technical GO on the approved source; TASK 8.9 stable-publication authorization remains pending. It is not a published GitHub Release.
 
 The latest published prerelease is `v3.0.0-rc.1`.
 
 | Reference | Security state | Distribution state |
 | --- | --- | --- |
 | `main` | Current development | Source repository |
-| `3.0.0` | Stable source candidate; release risk decision pending | Not published |
+| `3.0.0` | Scoped technical GO approved; release risk bounded by the acceptance record | Not published |
 | `v3.0.0-rc.1` | Latest published prerelease | Published |
 | Earlier or unmaintained versions | Not maintained | Unsupported |
 

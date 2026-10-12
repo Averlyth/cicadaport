@@ -902,3 +902,36 @@ G3_G4_AUTO_MERGE=PROHIBITED
 STABLE_RELEASE=NO_GO
 TASK_8_9_PUBLICATION=NOT_AUTHORIZED
 ```
+
+## TASK 8.8 — Reconciliación final de once gates (corte 2026-10-12 UTC)
+
+Esta adenda posterior incorpora la decisión expresa del arquitecto de aceptar
+`R-OPS-SOAK-01` para **distribución estable restringida** dentro de la matriz
+probada, sin certificar endurance de producción, SLO comercial ni métricas de
+recursos no demostradas. La aceptación no amplía la matriz y no convierte
+pruebas de planes de actualización/rollback o TUI importable en E2E productivo.
+
+La fuente canónica para la reconciliación pendiente de 8.8 es el [acta de once
+gates](audits/task-8-8-final-eleven-gate-reconciliation-20261012.md), creada
+sobre `main@54180410fcf8201322c06a00ab8493777458b17e`. Se preservan las aprobaciones G3/G4 previas, los snapshots
+históricos y el contrato; el nuevo documento resume la reconciliación nominal
+de los cinco skips, la captura nativa (0 alertas abiertas en las tres familias,
+CodeQL #2 `fixed`) y las acciones pendientes para la decisión final.
+
+```text
+TASK88_RECONCILIATION_BASE=54180410fcf8201322c06a00ab8493777458b17e
+TASK88_RECONCILIATION=DOCUMENTARY_PR_PREPARATION_ONLY
+R_OPS_SOAK_01=ARCHITECT_ACCEPTED_BOUNDED_STABLE_DISTRIBUTION
+G3=FORMALLY_APPROVED_SCOPED_20_OF_20
+G4=RC3_PUBLICATION_WAIVER_APPROVED
+SECURITY_NATIVE_INVENTORY=ZERO_OPEN_ALERTS_AT_20261012_CUTOFF
+CODEQL_ALERT_2=FIXED
+TEST_BASELINE=TECHNICALLY_RECONCILED_PENDING_FINAL_GATE
+DOCUMENTATION=CANDIDATE_PENDING_PR_INTEGRATION
+OPEN_BLOCKERS_ZERO=NOT_CERTIFIED
+STABLE_RELEASE=NO_GO
+MERGE=NOT_AUTHORIZED
+STABLE_TAG=NOT_AUTHORIZED
+STABLE_PUBLICATION=NOT_AUTHORIZED
+TASK_8_FINAL_CLOSURE=NOT_AUTHORIZED
+```

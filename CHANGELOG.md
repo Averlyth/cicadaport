@@ -6,6 +6,14 @@ Python distribution versions use the equivalent PEP 440 spelling.
 
 ## [Unreleased]
 
+### Documentation
+
+- Reconciled the main-branch documentation with the published `v3.0.0` stable
+  GitHub Release; this postrelease documentation update does not retag, rebuild,
+  publish an additional package, or extend technical support.
+
+## [3.0.0] - 2026-10-13 (stable GitHub Release; bounded technical support)
+
 ### Added
 
 - Go Service Evidence Engine v2 with a separate structured-evidence channel,
@@ -69,8 +77,6 @@ Python distribution versions use the equivalent PEP 440 spelling.
   banner collection; no raw, discovery or vulnerability capabilities were
   introduced.
 
-## [3.0.0] - Unreleased (scoped technical GO approved; publication pending)
-
 ### Release preparation
 
 - Prepared coherent version, supported Linux package metadata, build artifact
@@ -78,11 +84,15 @@ Python distribution versions use the equivalent PEP 440 spelling.
 - Integrated signed Stage R.3 dependency and CodeQL remediations; the Go TLS
   finding #2 was verified as fixed. The internal Python TLS reference path
   is not an authenticated public client.
-- TASK 8.8 received a signed, documented scoped technical GO (eleven gates);
-  R-OPS-SOAK-01 was accepted only for restricted distribution, without a
-  production endurance or SLO guarantee. The signed v3.0.0 tag, GitHub
-  Release, package publication, and post-release verification are not
-  authorized or completed.
+- TASK 8.8 received an eleven-gate scoped technical GO; `R-OPS-SOAK-01`
+  remains accepted only for bounded technical distribution, without certified
+  production endurance or commercial SLO guarantees.
+- Signed SSH annotated tag `v3.0.0` (object `1e00e9799e8184c9e395c2dd95223460711f94bb`)
+  targets commit `5cfe566d520d8d121e184c37139445d8e8191b36`.
+- Stable GitHub Release ID `411071718` was published on 2026-10-13 UTC with
+  12 individually SHA-256-verified assets and verified attestations.
+- Publishing to package registries, deploying to production, expanding support,
+  and final TASK 8 contractual closure remain independently unauthorized.
 
 ## [3.0.0-rc.3] - Unreleased
 

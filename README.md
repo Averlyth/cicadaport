@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![Platform](https://img.shields.io/badge/Platform-Linux%20x86_64-lightgrey.svg)
 ![Source Version](https://img.shields.io/badge/Source-3.0.0-blue.svg)
-![Published Prerelease](https://img.shields.io/badge/Published-v3.0.0--rc.1-informational.svg)
+![Stable Release](https://img.shields.io/badge/Stable-v3.0.0-success.svg)
 
 **Specialized TCP reconnaissance platform for authorized security assessments.**
 
@@ -26,19 +26,20 @@ The current source tree identifies the application as:
 | Organization | Averlyth |
 | Ecosystem | Obscuryx Security Platform |
 | Python distribution | `portscanner-pro` |
-| Source version | `3.0.0` (stable source preparation) |
+| Source version | `3.0.0` (signed stable Git source) |
 | Python version identifier | `3.0.0` |
-| Latest published prerelease | `v3.0.0-rc.1` |
-| Stable release | Not published |
+| Latest published prerelease | `v3.0.0-rc.1` (historical) |
+| Stable release | [`v3.0.0`](https://github.com/Averlyth/cicadaport/releases/tag/v3.0.0), published 2026-10-13 UTC |
+| Support scope | Linux x86_64; Ubuntu 22.04/24.04; Python 3.10–3.13 (bounded technical support) |
 | Primary platform | Linux x86_64 |
 
-`3.0.0` is the current stable source candidate. The eleven TASK 8.8 gates received a **scoped technical GO**; the signed stable tag, GitHub Release and package publication remain **separately unauthorized**.
+`v3.0.0` is the first published stable GitHub Release, with **bounded technical support** under the eleven-gate TASK 8.8 decision. Its signed Git tag targets commit `5cfe566d520d8d121e184c37139445d8e8191b36`; Release ID `411071718` contains 12 SHA-256-verified assets. Public download availability does **not** certify production endurance, a commercial SLO, or unsupported platforms.
 
-The latest published prerelease remains [v3.0.0-rc.1](https://github.com/Averlyth/cicadaport/releases/tag/v3.0.0-rc.1).
+The earlier [v3.0.0-rc.1](https://github.com/Averlyth/cicadaport/releases/tag/v3.0.0-rc.1) is preserved as a historical prerelease. RC3 remains an unpublished source-validated candidate under the approved publication waiver.
 
-Development state and published-release state are intentionally treated as separate concerns.
+GitHub Release publication is complete, whereas PyPI/other registries, production deployment, expanded support, and final TASK 8 closure remain **not authorized**. Release state and subsequent main-branch documentation updates are distinct: the signed tag and its 12 assets must not be moved or replaced.
 
-For the current scoped technical GO, see [the TASK 8.8 decision](docs/audits/task-8-8-go-technical-bounded-20261012.md) and [the TASK 8 status ledger](docs/task-8-status.md). RC3 remains a historical, unpublished source candidate. The TASK 8.9 publication decision is independent and has not been granted.
+For the approved technical limits, see [the TASK 8.8 decision](docs/audits/task-8-8-go-technical-bounded-20261012.md), [release notes](https://github.com/Averlyth/cicadaport/releases/tag/v3.0.0), and [the TASK 8 status ledger](docs/task-8-status.md).
 
 ---
 

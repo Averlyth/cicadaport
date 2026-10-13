@@ -1006,3 +1006,49 @@ GITHUB_RELEASE=NOT_AUTHORIZED
 PACKAGE_PUBLICATION=NOT_AUTHORIZED
 TASK_8_CLOSURE=NOT_AUTHORIZED
 ```
+
+## TASK 8 — Auditoría de cierre tras publicación estable (corte 2026-10-13 UTC)
+
+Esta adenda NO modifica los cortes previos ni implica el cierre contractual de
+TASK 8. El arquitecto ratificó formalmente la finalización de la publicación
+de `v3.0.0` y autorizó exclusivamente abrir su auditoría de cierre.
+
+El tag anotado y firmado `v3.0.0` (objeto
+`1e00e9799e8184c9e395c2dd95223460711f94bb`) apunta exclusivamente a
+`5cfe566d520d8d121e184c37139445d8e8191b36` (árbol
+`316e1c4d378734950e7ef942c4afb72ffd7ee91f`). GitHub Release
+`411071718`, publicada 2026-10-13 00:03:03 UTC, contiene exactamente 12
+archivos correspondientes al artefacto original aprobado `11763372738`.
+Wheel, sdist, manifests, SBOM y attestations pasaron verificaciones de entrega.
+
+El workflow de push del tag `38320016431` aprobó 28/28 jobs y el CI posmerge
+`38286123441` aprobó 28/28 jobs; CodeQL `38286123059` aprobó 4/4.
+La auditoría de solo lectura capturada en
+`/home/cicada/Development/GitHub/cicada-patches/TASK8_POSTRELEASE_CLOSURE_AUDIT_20261013T001826Z`
+(registro SHA-256 `7157ea3d2c869dbb7a96b202a142d1771b7f45bf951c802576a2ac645da8250e`)
+registró cero PR/issues abiertos, cero alertas nativas abiertas y el hallazgo
+CodeQL #2 como `fixed`, todos sujetos a su momento de observación.
+
+Hallazgos de cierre todavía abiertos: H-01 cinco documentos con estados
+anteriores a la publicación; H-02 custodia y retención de evidencias;
+H-03 ninguna regla activa específica para proteger tags; H-04 constancia de
+que distribución pública NO amplía el soporte técnico acotado.
+`R-OPS-SOAK-01` sigue aceptado solo dentro del alcance aprobado. La validación
+manual TUI instalada, pruebas productivas UPDATE_PLAN/ROLLBACK_PLAN y endurance
+representativo no se certifican retroactivamente.
+
+```text
+TASK_8_8=GO_TECHNICAL_BOUNDED_DOCUMENTED
+TASK_8_9=PUBLICATION_COMPLETED_FORMALLY_RATIFIED
+STABLE_RELEASE_ID=411071718_PUBLISHED_12_ASSETS_VERIFIED
+STABLE_TAG=v3.0.0_SIGNED_VERIFIED
+SIGNED_TAG_OBJECT=1e00e9799e8184c9e395c2dd95223460711f94bb
+STABLE_SOURCE=5cfe566d520d8d121e184c37139445d8e8191b36
+MAIN_AND_TAG_CI=SUCCESS_28_OF_28_EACH
+CLOSURE_AUDIT_BASELINE=PASS_WITH_OPEN_FINDINGS
+CLOSURE_AUDIT_FINDINGS=H-01_H-02_H-03_H-04_OPEN
+DOCUMENT_RECONCILIATION=PROPOSED_PENDING_SEPARATE_APPROVAL
+PACKAGE_REGISTRIES=NOT_AUTHORIZED
+PRODUCTION_DEPLOYMENT=NOT_AUTHORIZED
+TASK_8_FINAL_CLOSURE=NOT_AUTHORIZED
+```

@@ -6,17 +6,17 @@ Every expanded target, IP address, hostname, range, CIDR entry, and target-file 
 
 ## Supported Versions
 
-The source tree currently identifies CicadaPort as `3.0.0` (`3.0.0` in Python package metadata), prepared as a stable source candidate.
+The signed `v3.0.0` stable tag identifies CicadaPort version `3.0.0` (`3.0.0` in Python package metadata) at commit `5cfe566d520d8d121e184c37139445d8e8191b36`. It was published in GitHub Release ID `411071718` on 2026-10-13 UTC with 12 verified assets.
 
-`3.0.0` passed the scoped TASK 8.8 technical GO on the approved source; TASK 8.9 stable-publication authorization remains pending. It is not a published GitHub Release.
+The eleven TASK 8.8 gates approved a **scoped technical GO**, not unrestricted production readiness. Risk `R-OPS-SOAK-01` was accepted only for bounded distribution. Public availability does not expand the verified support matrix or certify production endurance or SLOs.
 
-The latest published prerelease is `v3.0.0-rc.1`.
+The earlier `v3.0.0-rc.1` remains a historical published prerelease; RC3 was source-validated but not publicly published.
 
 | Reference | Security state | Distribution state |
 | --- | --- | --- |
-| `main` | Current development | Source repository |
-| `3.0.0` | Scoped technical GO approved; release risk bounded by the acceptance record | Not published |
-| `v3.0.0-rc.1` | Latest published prerelease | Published |
+| `main` | Current development; may contain postrelease documentation | Source repository |
+| `v3.0.0` | Verified signed tag; scoped technical GO with accepted bounded risk | Public GitHub Release, not PyPI |
+| `v3.0.0-rc.1` | Historical prerelease | Published prerelease |
 | Earlier or unmaintained versions | Not maintained | Unsupported |
 
 The currently verified support matrix is limited to:

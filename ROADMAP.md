@@ -302,3 +302,29 @@ manifest, SBOM y las attestations del wheel y sdist, sin publicación.
 No hay autorización para tag `v3.0.0`, GitHub Release, publicación de paquetes
 o cierre de TASK 8. El soporte sigue limitado a Linux x86_64, Ubuntu 22.04/24.04,
 Python 3.10–3.13, Rust 1.97.1 y Go 1.26.9.
+
+## Actualización posterior — publicación estable de v3.0.0 (2026-10-13 UTC)
+
+Esta adenda es posterior al corte de preparación de TASK 8.9 del 2026-10-12.
+Los estados `NOT_AUTHORIZED` de cortes anteriores son históricos y no se
+modifican retroactivamente. El arquitecto autorizó y formalizó la publicación
+estable en GitHub, conservando el soporte técnico acotado.
+
+- `main@5cfe566d520d8d121e184c37139445d8e8191b36`, árbol
+  `316e1c4d378734950e7ef942c4afb72ffd7ee91f`.
+- Tag anotado y firmado SSH `v3.0.0`, objeto
+  `1e00e9799e8184c9e395c2dd95223460711f94bb`, verificado por GitHub.
+- GitHub Release pública ID `411071718`, publicada 2026-10-13 00:03:03 UTC:
+  https://github.com/Averlyth/cicadaport/releases/tag/v3.0.0
+- Artefacto aprobado `11763372738`: 12 archivos exactos verificados por SHA-256,
+  incluidos wheel, sdist, CycloneDX, manifests y bundles Sigstore.
+- CI posmerge y CI del tag: 28/28 jobs exitosos cada uno; CodeQL 4/4
+  analizadores; inventarios nativos de alertas abiertas en cero al corte de
+  auditoría pospublicación.
+- Soporte: Linux x86_64, Ubuntu 22.04/24.04, Python 3.10–3.13. No existe
+  certificación de endurance productivo, SLA o plataformas adicionales.
+- TASK 8.9 publicación: completada y formalmente ratificada por el arquitecto.
+  TASK 8 auditoría de cierre: abierta con hallazgos; cierre definitivo NO
+  autorizado. No se autorizaron registries de paquetes ni despliegue productivo.
+- Una PR documental posterior podrá actualizar `main`, sin mover `v3.0.0`,
+  reescribir su tag ni reemplazar los assets publicados.

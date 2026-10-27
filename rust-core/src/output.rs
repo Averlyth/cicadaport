@@ -5,18 +5,33 @@ use crate::events::NativeEventEmitter;
 use std::io::Write;
 use tokio::sync::mpsc::Receiver;
 
-pub(crate) fn write_jsonl_record<W: Write>(
+const JSONL_SCRATCH_INITIAL_CAPACITY: usize = 512;
+
+fn write_jsonl_record_with_buffer<W: Write>(
     writer: &mut W,
     result: &ScanResult,
+    scratch: &mut Vec<u8>,
 ) -> Result<(), String> {
-    serde_json::to_writer(&mut *writer, result)
+    scratch.clear();
+    serde_json::to_writer(&mut *scratch, result)
         .map_err(|error| format!("Error generando JSONL: {error}"))?;
+    writer
+        .write_all(scratch)
+        .map_err(|error| format!("Error escribiendo JSONL: {error}"))?;
     writer
         .write_all(b"\n")
         .map_err(|error| format!("Error escribiendo JSONL: {error}"))?;
     writer
         .flush()
         .map_err(|error| format!("Error vaciando JSONL: {error}"))
+}
+
+pub(crate) fn write_jsonl_record<W: Write>(
+    writer: &mut W,
+    result: &ScanResult,
+) -> Result<(), String> {
+    let mut scratch = Vec::with_capacity(JSONL_SCRATCH_INITIAL_CAPACITY);
+    write_jsonl_record_with_buffer(writer, result, &mut scratch)
 }
 
 pub(crate) fn run_writer<W: Write>(
@@ -27,6 +42,7 @@ pub(crate) fn run_writer<W: Write>(
     expected_results: usize,
 ) -> Result<(), EngineError> {
     let mut emitted_results = 0;
+    let mut scratch = Vec::with_capacity(JSONL_SCRATCH_INITIAL_CAPACITY);
 
     while emitted_results < expected_results {
         let result = match receiver.blocking_recv() {
@@ -34,7 +50,7 @@ pub(crate) fn run_writer<W: Write>(
             None => break,
         };
 
-        if let Err(error) = write_jsonl_record(writer, &result) {
+        if let Err(error) = write_jsonl_record_with_buffer(writer, &result, &mut scratch) {
             cancellation.cancel();
             return Err(EngineError::Output(error));
         }
@@ -198,6 +214,67 @@ mod tests {
         assert_eq!(payload["contract_version"], CONTRACT_VERSION);
         assert_eq!(payload["record_type"], "port_result");
         assert_eq!(payload["evidence"]["reason"], "connection_refused");
+    }
+
+    #[derive(Default)]
+    struct CountingWriter {
+        bytes: Vec<u8>,
+        writes: usize,
+        flushes: usize,
+    }
+
+    impl Write for CountingWriter {
+        fn write(&mut self, buffer: &[u8]) -> io::Result<usize> {
+            self.writes += 1;
+            self.bytes.extend_from_slice(buffer);
+            Ok(buffer.len())
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            self.flushes += 1;
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn jsonl_record_is_two_writes_and_one_flush() {
+        let mut writer = CountingWriter::default();
+        write_jsonl_record(&mut writer, &result(80)).expect("registro");
+        assert_eq!(writer.writes, 2);
+        assert_eq!(writer.flushes, 1);
+        let jsonl = String::from_utf8(writer.bytes).expect("UTF-8");
+        assert_eq!(jsonl.lines().count(), 1);
+        assert!(jsonl.ends_with('\n'));
+        let record: serde_json::Value = serde_json::from_str(jsonl.trim()).expect("JSON");
+        assert_eq!(record["port"], 80);
+    }
+
+    #[test]
+    fn streaming_output_stays_record_granular_with_reused_scratch() {
+        let cfg = config(3);
+        let cancellation = CancellationToken::new();
+        let mut writer = CountingWriter::default();
+        run_writer(
+            &mut writer,
+            receiver_with_results(&[1, 2, 3]),
+            NativeEventEmitter::disabled_for_test(&cfg),
+            cancellation.clone(),
+            3,
+        )
+        .expect("stream completo");
+
+        assert!(!cancellation.is_cancelled());
+        assert_eq!(writer.writes, 6);
+        assert_eq!(writer.flushes, 3);
+        let jsonl = String::from_utf8(writer.bytes).expect("UTF-8");
+        let ports: Vec<u64> = jsonl
+            .lines()
+            .map(|line| {
+                let record: serde_json::Value = serde_json::from_str(line).expect("JSONL");
+                record["port"].as_u64().expect("port")
+            })
+            .collect();
+        assert_eq!(ports, vec![1, 2, 3]);
     }
 
     #[test]

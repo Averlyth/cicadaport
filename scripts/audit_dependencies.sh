@@ -9,8 +9,8 @@ command -v govulncheck >/dev/null 2>&1 || { echo "Falta govulncheck." >&2; exit 
 command -v go >/dev/null 2>&1 || { echo "Falta Go." >&2; exit 1; }
 # Fail closed: govulncheck reports reachable crypto/tls issues in Go 1.26.8.
 go_runtime="$(go env GOVERSION)"
-[[ "$go_runtime" == "go1.26.9" ]] || {
-  echo "Se requiere el runtime Go seguro go1.26.9; detectado: $go_runtime" >&2
+[[ "$go_runtime" == "go1.26.10" ]] || {
+  echo "Se requiere el runtime Go seguro go1.26.10; detectado: $go_runtime" >&2
   exit 1
 }
 

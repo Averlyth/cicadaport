@@ -15,7 +15,7 @@ echo "[1] Verificando herramientas..."
 echo "[2] Compilando motor Rust con 1.97.1..."
 cargo +1.97.1 build --release --locked --manifest-path rust-core/Cargo.toml
 
-echo "[3] Compilando motor Go con 1.26.9..."
+echo "[3] Compilando motor Go con 1.26.10..."
 (
   cd go-banner
   CGO_ENABLED=0 go build -trimpath -o go-banner .

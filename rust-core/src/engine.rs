@@ -31,6 +31,7 @@ struct SchedulerReport {
 struct ScanTaskContext {
     host: Arc<str>,
     address: IpAddr,
+    address_text: Arc<str>,
     timeout: Duration,
 }
 
@@ -85,7 +86,7 @@ fn try_spawn_port_task<F, Fut>(
     port: u16,
 ) -> bool
 where
-    F: Fn(Arc<str>, IpAddr, u16, Duration) -> Fut + Clone + Send + Sync + 'static,
+    F: Fn(Arc<str>, IpAddr, Arc<str>, u16, Duration) -> Fut + Clone + Send + Sync + 'static,
     Fut: Future<Output = ScanResult> + Send + 'static,
 {
     let Some(spawn_permit) = cancellation.try_begin_spawn() else {
@@ -96,6 +97,7 @@ where
     join_set.spawn(connector(
         Arc::clone(&task.host),
         task.address,
+        Arc::clone(&task.address_text),
         port,
         task.timeout,
     ));
@@ -115,7 +117,7 @@ async fn run_scheduler_with_connector<F, Fut>(
     connector: F,
 ) -> Result<SchedulerReport, EngineError>
 where
-    F: Fn(Arc<str>, IpAddr, u16, Duration) -> Fut + Clone + Send + Sync + 'static,
+    F: Fn(Arc<str>, IpAddr, Arc<str>, u16, Duration) -> Fut + Clone + Send + Sync + 'static,
     Fut: Future<Output = ScanResult> + Send + 'static,
 {
     let SchedulerContext {
@@ -211,6 +213,7 @@ async fn run_scheduler(
             task: ScanTaskContext {
                 host,
                 address,
+                address_text: Arc::from(address.to_string()),
                 timeout,
             },
             ports,
@@ -218,8 +221,8 @@ async fn run_scheduler(
             cancellation,
         },
         sender,
-        |host, address, port, timeout| async move {
-            scan_port(host.as_ref(), address, port, timeout).await
+        |host, address, address_text, port, timeout| async move {
+            scan_port(host, address, address_text, port, timeout).await
         },
     )
     .await
@@ -400,6 +403,7 @@ mod tests {
     async fn test_connector(
         host: Arc<str>,
         _address: IpAddr,
+        _address_text: Arc<str>,
         port: u16,
         _timeout: Duration,
     ) -> crate::contract::ScanResult {
@@ -415,6 +419,7 @@ mod tests {
             task: ScanTaskContext {
                 host: Arc::from("127.0.0.1"),
                 address: IpAddr::V4(Ipv4Addr::LOCALHOST),
+                address_text: Arc::from("127.0.0.1"),
                 timeout: Duration::from_millis(10),
             },
             ports,
@@ -499,7 +504,7 @@ mod tests {
             .block_on(run_scheduler_with_connector(
                 scheduler_context(ports, 4, cancellation.clone()),
                 sender,
-                |host, _address, port, _timeout| async move {
+                |host, _address, _address_text, port, _timeout| async move {
                     if port == 3 {
                         panic!("forced task panic");
                     }

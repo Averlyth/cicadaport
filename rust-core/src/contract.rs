@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 pub(crate) const CONTRACT_VERSION: u8 = 1;
 pub(crate) const MAX_WORKERS: usize = 512;
@@ -36,8 +37,8 @@ pub(crate) struct ScanEvidence {
 pub(crate) struct ScanResult {
     pub(crate) contract_version: u8,
     pub(crate) record_type: &'static str,
-    pub(crate) target: String,
-    pub(crate) address: String,
+    pub(crate) target: Arc<str>,
+    pub(crate) address: Arc<str>,
     pub(crate) address_family: Option<&'static str>,
     pub(crate) host_state: &'static str,
     pub(crate) port: u16,

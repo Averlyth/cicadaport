@@ -1,6 +1,7 @@
 use crate::contract::{ScanEvidence, ScanResult, CONTRACT_VERSION};
 use std::io;
 use std::net::{IpAddr, SocketAddr};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::net::TcpStream;
 use tokio::time;
@@ -98,8 +99,8 @@ pub(crate) fn resolution_failed_result(host: &str, port: u16, detail: &str) -> S
     ScanResult {
         contract_version: CONTRACT_VERSION,
         record_type: "port_result",
-        target: host.to_string(),
-        address: String::new(),
+        target: Arc::from(host),
+        address: Arc::from(""),
         address_family: None,
         host_state: "unknown",
         port,
@@ -120,12 +121,18 @@ pub(crate) fn resolution_failed_result(host: &str, port: u16, detail: &str) -> S
     }
 }
 
-fn accepted_result(host: &str, address: IpAddr, port: u16, elapsed: Duration) -> ScanResult {
+fn accepted_result(
+    host: Arc<str>,
+    address: IpAddr,
+    address_text: Arc<str>,
+    port: u16,
+    elapsed: Duration,
+) -> ScanResult {
     ScanResult {
         contract_version: CONTRACT_VERSION,
         record_type: "port_result",
-        target: host.to_string(),
-        address: address.to_string(),
+        target: host,
+        address: address_text,
         address_family: Some(address_family(address)),
         host_state: "up",
         port,
@@ -147,8 +154,9 @@ fn accepted_result(host: &str, address: IpAddr, port: u16, elapsed: Duration) ->
 }
 
 fn failed_result(
-    host: &str,
+    host: Arc<str>,
     address: IpAddr,
+    address_text: Arc<str>,
     port: u16,
     elapsed: Duration,
     error: &io::Error,
@@ -157,8 +165,8 @@ fn failed_result(
     ScanResult {
         contract_version: CONTRACT_VERSION,
         record_type: "port_result",
-        target: host.to_string(),
-        address: address.to_string(),
+        target: host,
+        address: address_text,
         address_family: Some(address_family(address)),
         host_state,
         port,
@@ -180,8 +188,9 @@ fn failed_result(
 }
 
 pub(crate) async fn scan_port(
-    host: &str,
+    host: Arc<str>,
     address: IpAddr,
+    address_text: Arc<str>,
     port: u16,
     timeout: Duration,
 ) -> ScanResult {
@@ -189,11 +198,11 @@ pub(crate) async fn scan_port(
     let socket_addr = SocketAddr::new(address, port);
 
     match time::timeout(timeout, TcpStream::connect(socket_addr)).await {
-        Ok(Ok(_stream)) => accepted_result(host, address, port, start.elapsed()),
-        Ok(Err(error)) => failed_result(host, address, port, start.elapsed(), &error),
+        Ok(Ok(_stream)) => accepted_result(host, address, address_text, port, start.elapsed()),
+        Ok(Err(error)) => failed_result(host, address, address_text, port, start.elapsed(), &error),
         Err(_) => {
             let error = io::Error::new(io::ErrorKind::TimedOut, "connection timed out");
-            failed_result(host, address, port, start.elapsed(), &error)
+            failed_result(host, address, address_text, port, start.elapsed(), &error)
         }
     }
 }
@@ -201,6 +210,67 @@ pub(crate) async fn scan_port(
 #[cfg(test)]
 mod tests {
     use super::{truncate_diagnostic, MAX_DIAGNOSTIC_BYTES};
+
+    #[test]
+    fn result_metadata_is_shared_and_json_contract_stays_string_based() {
+        use std::net::{IpAddr, Ipv4Addr};
+        use std::sync::Arc;
+        use std::time::Duration;
+
+        let host: Arc<str> = Arc::from("example.test");
+        let address = IpAddr::V4(Ipv4Addr::LOCALHOST);
+        let address_text: Arc<str> = Arc::from(address.to_string());
+        let first = super::accepted_result(
+            Arc::clone(&host),
+            address,
+            Arc::clone(&address_text),
+            80,
+            Duration::ZERO,
+        );
+        let second = super::accepted_result(
+            Arc::clone(&host),
+            address,
+            Arc::clone(&address_text),
+            443,
+            Duration::ZERO,
+        );
+
+        assert!(Arc::ptr_eq(&first.target, &second.target));
+        assert!(Arc::ptr_eq(&first.address, &second.address));
+        let first_json = serde_json::to_value(&first).expect("JSON contractual");
+        assert_eq!(first_json["target"], "example.test");
+        assert_eq!(first_json["address"], "127.0.0.1");
+        assert_eq!(first_json["record_type"], "port_result");
+        assert_eq!(first_json["state"], "open");
+    }
+
+    #[test]
+    fn failed_result_reuses_metadata_without_changing_error_classification() {
+        use std::io;
+        use std::net::{IpAddr, Ipv4Addr};
+        use std::sync::Arc;
+        use std::time::Duration;
+
+        let host: Arc<str> = Arc::from("example.test");
+        let address = IpAddr::V4(Ipv4Addr::LOCALHOST);
+        let address_text: Arc<str> = Arc::from(address.to_string());
+        let result = super::failed_result(
+            Arc::clone(&host),
+            address,
+            Arc::clone(&address_text),
+            81,
+            Duration::ZERO,
+            &io::Error::from(io::ErrorKind::ConnectionRefused),
+        );
+        assert!(Arc::ptr_eq(&result.target, &host));
+        assert!(Arc::ptr_eq(&result.address, &address_text));
+        assert_eq!(result.state, "closed");
+        assert_eq!(result.reason, "connection_refused");
+        let value = serde_json::to_value(&result).expect("JSON contractual");
+        assert_eq!(value["target"], "example.test");
+        assert_eq!(value["address"], "127.0.0.1");
+        assert_eq!(value["protocol"], "tcp");
+    }
 
     #[test]
     fn diagnostic_truncation_is_utf8_safe_and_bounded() {

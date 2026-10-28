@@ -108,8 +108,8 @@ mod tests {
         ScanResult {
             contract_version: CONTRACT_VERSION,
             record_type: "port_result",
-            target: "127.0.0.1".to_string(),
-            address: "127.0.0.1".to_string(),
+            target: "127.0.0.1".into(),
+            address: "127.0.0.1".into(),
             address_family: Some("ipv4"),
             host_state: "up",
             port,

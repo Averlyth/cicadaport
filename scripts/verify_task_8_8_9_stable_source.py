@@ -28,8 +28,8 @@ def main() -> None:
     workflow = read(".github/workflows/ci.yml")
     assert 'RELEASE_ARTIFACT_NAME: cicadaport-3.0.0-linux-x86_64' in workflow
     assert 'name: Go 1.26.8' in workflow  # required legacy ruleset label
-    assert 'go-version: "1.26.9"' in workflow
-    assert workflow.count('go-version: "1.26.9"') == 5
+    assert 'go-version: "1.26.10"' in workflow
+    assert workflow.count('go-version: "1.26.10"') == 5
     assert 'python -I -S scripts/verify_task_8_8_9_stable_source.py' in workflow
     assert '"contract": "EIVRC-CICADAPORT-5.6-001"' in read("scripts/generate_release_manifest.py")
     assert '"release_candidate": SEMVER_VERSION' in read("scripts/generate_release_manifest.py")

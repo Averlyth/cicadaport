@@ -49,11 +49,11 @@ def test_security_go_toolchain_is_pinned_across_entrypoints() -> None:
     audit = (ROOT / "scripts/audit_dependencies.sh").read_text(encoding="utf-8")
     go_pin = (ROOT / ".go-version").read_text(encoding="utf-8")
 
-    assert go_pin == "1.26.9\n"
-    assert 'GO_VERSION: "1.26.9"' in workflow
-    assert workflow.count('go-version: "1.26.9"') == 5
+    assert go_pin == "1.26.10\n"
+    assert 'GO_VERSION: "1.26.10"' in workflow
+    assert workflow.count('go-version: "1.26.10"') == 5
     assert 'go-version: "1.26.8"' not in workflow
     assert "name: Go 1.26.8" in workflow  # Legacy required status context.
-    assert 'GO_VERSION = "go1.26.9"' in setup
-    assert "go1.26.9" in check_tools
-    assert '"go1.26.9"' in audit
+    assert 'GO_VERSION = "go1.26.10"' in setup
+    assert "go1.26.10" in check_tools
+    assert '"go1.26.10"' in audit

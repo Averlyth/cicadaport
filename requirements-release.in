@@ -5,3 +5,8 @@ pip-audit==2.10.1
 pip-tools==7.6.1
 twine==7.0.0
 wheel==0.48.0
+
+# Security remediation (Dependabot alerts #2-#6, 2026-10-29).
+certifi==2026.10.19
+filelock==4.2.1
+setuptools==84.1.0

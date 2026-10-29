@@ -9,12 +9,11 @@ mod output;
 mod resolve;
 
 use crate::contract::parse_scan_request;
-use crate::engine::run_scan;
+use crate::engine::run_scan_stdout;
 use crate::invocation::{
     parse_invocation, print_error_and_exit, read_stdin, Invocation, HELP_TEXT,
 };
 use std::env;
-use std::io;
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -29,8 +28,7 @@ fn main() {
     let raw_request = read_stdin().unwrap_or_else(|error| print_error_and_exit(&error, 1));
     let config =
         parse_scan_request(&raw_request).unwrap_or_else(|error| print_error_and_exit(&error, 1));
-    let writer = io::stdout();
-    if let Err(error) = run_scan(config, writer) {
+    if let Err(error) = run_scan_stdout(config) {
         print_error_and_exit(&error, 1);
     }
 }

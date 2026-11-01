@@ -3,7 +3,7 @@ use crate::connect::{resolution_failed_result, scan_port};
 use crate::contract::{AppConfig, ScanResult};
 use crate::error::EngineError;
 use crate::events::NativeEventEmitter;
-use crate::output::{run_writer, write_jsonl_record};
+use crate::output::{run_writer, run_writer_stdout, write_jsonl_record, write_jsonl_record_stdout};
 use crate::resolve::resolve_target;
 use std::future::Future;
 use std::io::Write;
@@ -241,7 +241,20 @@ fn reconcile_outcomes(
     }
 }
 
-pub(crate) fn run_scan<W: Write + Send>(config: AppConfig, mut writer: W) -> Result<(), String> {
+#[cfg(test)]
+pub(crate) fn run_scan<W: Write + Send>(config: AppConfig, writer: W) -> Result<(), String> {
+    run_scan_with_mode(config, writer, false)
+}
+
+pub(crate) fn run_scan_stdout(config: AppConfig) -> Result<(), String> {
+    run_scan_with_mode(config, std::io::stdout(), true)
+}
+
+fn run_scan_with_mode<W: Write + Send>(
+    config: AppConfig,
+    mut writer: W,
+    one_write: bool,
+) -> Result<(), String> {
     let timeout = Duration::from_millis(config.timeout_ms);
     let expected_results = config.ports.len();
     let mut events = NativeEventEmitter::from_env(&config)?;
@@ -253,7 +266,11 @@ pub(crate) fn run_scan<W: Write + Send>(config: AppConfig, mut writer: W) -> Res
             let mut emitted_results = 0;
             for port in &config.ports {
                 let result = resolution_failed_result(&config.host, *port, &detail);
-                write_jsonl_record(&mut writer, &result)?;
+                if one_write {
+                    write_jsonl_record_stdout(&mut writer, &result)?;
+                } else {
+                    write_jsonl_record(&mut writer, &result)?;
+                }
                 emitted_results += 1;
                 events.emit(
                     "port_completed",
@@ -287,13 +304,23 @@ pub(crate) fn run_scan<W: Write + Send>(config: AppConfig, mut writer: W) -> Res
     ));
 
     let writer_result = match panic::catch_unwind(AssertUnwindSafe(|| {
-        run_writer(
-            &mut writer,
-            receiver,
-            events,
-            cancellation.clone(),
-            expected_results,
-        )
+        if one_write {
+            run_writer_stdout(
+                &mut writer,
+                receiver,
+                events,
+                cancellation.clone(),
+                expected_results,
+            )
+        } else {
+            run_writer(
+                &mut writer,
+                receiver,
+                events,
+                cancellation.clone(),
+                expected_results,
+            )
+        }
     })) {
         Ok(result) => result,
         Err(_) => {

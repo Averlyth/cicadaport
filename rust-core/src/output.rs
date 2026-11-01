@@ -7,23 +7,47 @@ use tokio::sync::mpsc::Receiver;
 
 const JSONL_SCRATCH_INITIAL_CAPACITY: usize = 512;
 
+fn write_jsonl_record_with_buffer_mode<W: Write>(
+    writer: &mut W,
+    result: &ScanResult,
+    scratch: &mut Vec<u8>,
+    one_write: bool,
+) -> Result<(), String> {
+    scratch.clear();
+    serde_json::to_writer(&mut *scratch, result)
+        .map_err(|error| format!("Error generando JSONL: {error}"))?;
+    if one_write {
+        scratch.push(b'\n');
+        writer
+            .write_all(scratch)
+            .map_err(|error| format!("Error escribiendo JSONL: {error}"))?;
+    } else {
+        writer
+            .write_all(scratch)
+            .map_err(|error| format!("Error escribiendo JSONL: {error}"))?;
+        writer
+            .write_all(b"\n")
+            .map_err(|error| format!("Error escribiendo JSONL: {error}"))?;
+    }
+    writer
+        .flush()
+        .map_err(|error| format!("Error vaciando JSONL: {error}"))
+}
+
 fn write_jsonl_record_with_buffer<W: Write>(
     writer: &mut W,
     result: &ScanResult,
     scratch: &mut Vec<u8>,
 ) -> Result<(), String> {
-    scratch.clear();
-    serde_json::to_writer(&mut *scratch, result)
-        .map_err(|error| format!("Error generando JSONL: {error}"))?;
-    writer
-        .write_all(scratch)
-        .map_err(|error| format!("Error escribiendo JSONL: {error}"))?;
-    writer
-        .write_all(b"\n")
-        .map_err(|error| format!("Error escribiendo JSONL: {error}"))?;
-    writer
-        .flush()
-        .map_err(|error| format!("Error vaciando JSONL: {error}"))
+    write_jsonl_record_with_buffer_mode(writer, result, scratch, false)
+}
+
+pub(crate) fn write_jsonl_record_stdout<W: Write>(
+    writer: &mut W,
+    result: &ScanResult,
+) -> Result<(), String> {
+    let mut scratch = Vec::with_capacity(JSONL_SCRATCH_INITIAL_CAPACITY);
+    write_jsonl_record_with_buffer_mode(writer, result, &mut scratch, true)
 }
 
 pub(crate) fn write_jsonl_record<W: Write>(
@@ -36,10 +60,45 @@ pub(crate) fn write_jsonl_record<W: Write>(
 
 pub(crate) fn run_writer<W: Write>(
     writer: &mut W,
+    receiver: Receiver<ScanResult>,
+    events: NativeEventEmitter,
+    cancellation: CancellationToken,
+    expected_results: usize,
+) -> Result<(), EngineError> {
+    run_writer_with_mode(
+        writer,
+        receiver,
+        events,
+        cancellation,
+        expected_results,
+        false,
+    )
+}
+
+pub(crate) fn run_writer_stdout<W: Write>(
+    writer: &mut W,
+    receiver: Receiver<ScanResult>,
+    events: NativeEventEmitter,
+    cancellation: CancellationToken,
+    expected_results: usize,
+) -> Result<(), EngineError> {
+    run_writer_with_mode(
+        writer,
+        receiver,
+        events,
+        cancellation,
+        expected_results,
+        true,
+    )
+}
+
+fn run_writer_with_mode<W: Write>(
+    writer: &mut W,
     mut receiver: Receiver<ScanResult>,
     mut events: NativeEventEmitter,
     cancellation: CancellationToken,
     expected_results: usize,
+    one_write: bool,
 ) -> Result<(), EngineError> {
     let mut emitted_results = 0;
     let mut scratch = Vec::with_capacity(JSONL_SCRATCH_INITIAL_CAPACITY);
@@ -50,7 +109,9 @@ pub(crate) fn run_writer<W: Write>(
             None => break,
         };
 
-        if let Err(error) = write_jsonl_record_with_buffer(writer, &result, &mut scratch) {
+        if let Err(error) =
+            write_jsonl_record_with_buffer_mode(writer, &result, &mut scratch, one_write)
+        {
             cancellation.cancel();
             return Err(EngineError::Output(error));
         }
@@ -85,7 +146,9 @@ pub(crate) fn run_writer<W: Write>(
 
 #[cfg(test)]
 mod tests {
-    use super::{run_writer, write_jsonl_record};
+    use super::{
+        run_writer, run_writer_stdout, write_jsonl_record, write_jsonl_record_with_buffer_mode,
+    };
     use crate::cancel::CancellationToken;
     use crate::contract::{AppConfig, ScanEvidence, ScanResult, CONTRACT_VERSION};
     use crate::error::EngineError;
@@ -233,6 +296,101 @@ mod tests {
         fn flush(&mut self) -> io::Result<()> {
             self.flushes += 1;
             Ok(())
+        }
+    }
+
+    #[test]
+    fn p0a3_stdout_bytes_and_write_calls_are_scoped() {
+        let record = result(443);
+        let mut generic = CountingWriter::default();
+        let mut stdout = CountingWriter::default();
+        let mut a = Vec::with_capacity(512);
+        let mut b = Vec::with_capacity(512);
+        write_jsonl_record_with_buffer_mode(&mut generic, &record, &mut a, false)
+            .expect("baseline JSONL");
+        write_jsonl_record_with_buffer_mode(&mut stdout, &record, &mut b, true)
+            .expect("stdout JSONL");
+        assert_eq!(generic.bytes, stdout.bytes, "JSONL wire bytes unchanged");
+        assert_eq!(generic.writes, 2, "generic Write remains two writes");
+        assert_eq!(stdout.writes, 1, "stdout uses one write");
+        assert_eq!(generic.flushes, 1);
+        assert_eq!(stdout.flushes, 1);
+    }
+
+    #[test]
+    fn p0a3_stdout_run_writer_preserves_jsonl_and_per_record_flush() {
+        let cfg = config(3);
+        let mut baseline = CountingWriter::default();
+        let mut stdout = CountingWriter::default();
+        run_writer(
+            &mut baseline,
+            receiver_with_results(&[1, 2, 3]),
+            NativeEventEmitter::disabled_for_test(&cfg),
+            CancellationToken::new(),
+            3,
+        )
+        .expect("generic complete");
+        run_writer_stdout(
+            &mut stdout,
+            receiver_with_results(&[1, 2, 3]),
+            NativeEventEmitter::disabled_for_test(&cfg),
+            CancellationToken::new(),
+            3,
+        )
+        .expect("stdout complete");
+        assert_eq!(stdout.bytes, baseline.bytes);
+        assert_eq!(baseline.writes, 6);
+        assert_eq!(stdout.writes, 3);
+        assert_eq!(baseline.flushes, 3);
+        assert_eq!(stdout.flushes, 3);
+    }
+
+    struct ShortThenBrokenPipe {
+        calls: usize,
+    }
+    impl Write for ShortThenBrokenPipe {
+        fn write(&mut self, buffer: &[u8]) -> io::Result<usize> {
+            self.calls += 1;
+            if self.calls == 1 {
+                assert!(!buffer.is_empty());
+                Ok(1)
+            } else {
+                Err(io::Error::new(io::ErrorKind::BrokenPipe, "partial output"))
+            }
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn p0a3_stdout_partial_write_error_cancels() {
+        let cfg = config(1);
+        for stdout_mode in [false, true] {
+            let mut sink = ShortThenBrokenPipe { calls: 0 };
+            let token = CancellationToken::new();
+            let writer = NativeEventEmitter::disabled_for_test(&cfg);
+            let output = if stdout_mode {
+                run_writer_stdout(
+                    &mut sink,
+                    receiver_with_results(&[1]),
+                    writer,
+                    token.clone(),
+                    1,
+                )
+            } else {
+                run_writer(
+                    &mut sink,
+                    receiver_with_results(&[1]),
+                    writer,
+                    token.clone(),
+                    1,
+                )
+            };
+            let error = output.expect_err("partial output must not succeed");
+            assert!(matches!(error, EngineError::Output(_)));
+            assert!(token.is_cancelled());
+            assert_eq!(sink.calls, 2);
         }
     }
 

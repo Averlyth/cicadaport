@@ -17,7 +17,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 RUST_TOOLCHAIN = "1.97.1"
 GO_VERSION = "go1.26.10"
 SUPPORTED_MACHINES = {"x86_64", "amd64"}
-NATIVE_NAMES = ("rust-core", "go-banner")
+NATIVE_NAMES = ("rust-core", "go-banner", "rust-udp")
 
 
 def _require_release_platform() -> None:
@@ -91,6 +91,20 @@ class build_py(_build_py):
         shutil.copy2(
             cargo_target / "release" / "rust-core",
             native_directory / "rust-core",
+        )
+
+        # UDP v2 candidate: independent binary, no Python/CLI public selector.
+        # The original rust-core build and Go build remain byte-for-byte intact.
+        _run(
+            [
+                cargo, f"+{RUST_TOOLCHAIN}", "build", "--release", "--locked",
+                "--offline", "--bin", "rust-udp", "--manifest-path", "rust-core/Cargo.toml",
+            ],
+            env=environment,
+        )
+        shutil.copy2(
+            cargo_target / "release" / "rust-udp",
+            native_directory / "rust-udp",
         )
 
         go_environment = os.environ.copy()

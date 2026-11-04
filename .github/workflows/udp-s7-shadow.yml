@@ -1,0 +1,69 @@
+# CicadaPort experimental UDP S7: isolated-branch-only, eight-cell OS/Python matrix.
+# NOT a required CI check, NOT automatic publication or public UDP selector.
+name: UDP Shadow S7 Experimental Matrix
+on:
+  push:
+    branches:
+      - feat/rust-p0a5-udp-s7-shadow-20261102
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  s7-udp-shadow:
+    name: S7 UDP ${{ matrix.os }} Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        python: ['3.10', '3.11', '3.12', '3.13']
+    steps:
+      - name: Checkout immutable SHA of dispatched branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Prepare Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install Rust 1.97.1
+        shell: bash
+        run: |
+          rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
+          rustc +1.97.1 --version
+      - name: Fetch locked dependencies (networked, approved runner only)
+        shell: bash
+        run: cargo +1.97.1 fetch --locked --manifest-path rust-core/Cargo.toml
+      - name: Test, lint and build candidate offline
+        shell: bash
+        env:
+          CARGO_NET_OFFLINE: 'true'
+          CARGO_TARGET_DIR: ${{ runner.temp }}/p0a5-udp-cargo
+        run: |
+          cargo +1.97.1 test --locked --offline --manifest-path rust-core/Cargo.toml
+          cargo +1.97.1 clippy --all-targets --locked --offline --manifest-path rust-core/Cargo.toml -- -D warnings
+          cargo +1.97.1 build --release --locked --offline --bin rust-udp --manifest-path rust-core/Cargo.toml
+      - name: Bounded loopback echo; self-identifying matrix cell
+        shell: bash
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/p0a5-udp-cargo
+          P0A5_S7_CELL_ALLOW_LOOPBACK: '1'
+          CICADAPORT_UDP_PUBLIC: '0'
+        run: |
+          BIN="$CARGO_TARGET_DIR/release/rust-udp"
+          sha256sum "$BIN"
+          BIN_SHA="$(sha256sum "$BIN" | awk '{print $1}')"
+          python scripts/p0a5_s7_cell.py --check --require-matrix-cell --binary "$BIN" --expected-sha256 "$BIN_SHA"
+          python scripts/p0a5_s7_cell.py --run --require-matrix-cell --binary "$BIN" --expected-sha256 "$BIN_SHA" --output s7_cell.json
+      - name: Upload per-cell report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: udp-s7-${{ matrix.os }}-py${{ matrix.python }}
+          path: s7_cell.json
+          if-no-files-found: warn
+# This scoped-branch workflow is a proposal and is not active until
+# an independently authorized branch change. S8 remains HOLD.

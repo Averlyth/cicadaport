@@ -392,3 +392,79 @@ jobs:
           echo "$integration_venv/bin" >> "$GITHUB_PATH"
       - run: ./scripts/build_all.sh
       - run: ./scripts/test_all.sh
+
+  # P0-A.5 S8: proposed required UDP CI. NOT a ruleset mutation.
+  # One stable aggregate check gates the full eight-cell matrix.
+  udp-s8-matrix:
+    name: UDP CI (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+    steps:
+      - name: Checkout source without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Prepare Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pinned Rust 1.97.1
+        shell: bash
+        run: |
+          rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
+          rustc +1.97.1 --version
+      - name: Fetch locked Rust dependencies
+        shell: bash
+        run: cargo +1.97.1 fetch --locked --manifest-path rust-core/Cargo.toml
+      - name: Offline Rust test, lint and build
+        shell: bash
+        env:
+          CARGO_NET_OFFLINE: 'true'
+          CARGO_TARGET_DIR: ${{ runner.temp }}/p0a5-udp-s8-cargo
+        run: |
+          cargo +1.97.1 test --locked --offline --manifest-path rust-core/Cargo.toml
+          cargo +1.97.1 clippy --all-targets --locked --offline --manifest-path rust-core/Cargo.toml -- -D warnings
+          cargo +1.97.1 build --release --locked --offline --bin rust-udp --manifest-path rust-core/Cargo.toml
+      - name: Bounded UDP loopback contract and report
+        shell: bash
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/p0a5-udp-s8-cargo
+          P0A5_S7_CELL_ALLOW_LOOPBACK: '1'
+          CICADAPORT_UDP_PUBLIC: '0'
+        run: |
+          BIN="$CARGO_TARGET_DIR/release/rust-udp"
+          BIN_SHA="$(sha256sum "$BIN" | awk '{print $1}')"
+          python scripts/p0a5_s7_cell.py --check --require-matrix-cell --binary "$BIN" --expected-sha256 "$BIN_SHA"
+          python scripts/p0a5_s7_cell.py --run --require-matrix-cell --binary "$BIN" --expected-sha256 "$BIN_SHA" --output s8_cell.json
+      - name: Upload required UDP cell report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: udp-s8-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: s8_cell.json
+          if-no-files-found: error
+
+  udp-s8-required-gate:
+    name: UDP CI required gate
+    if: ${{ always() }}
+    needs: [udp-s8-matrix]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Require success from all eight UDP CI matrix jobs
+        shell: bash
+        env:
+          UDP_MATRIX_RESULT: ${{ needs.udp-s8-matrix.result }}
+        run: |
+          printf 'UDP_S8_MATRIX_RESULT=%s\n' "$UDP_MATRIX_RESULT"
+          test "$UDP_MATRIX_RESULT" = 'success'
+          printf 'UDP_S8_REQUIRED_GATE=PASS_ALL_EIGHT\n'
